@@ -1,6 +1,7 @@
 import express from "express";
 import { register, login, refresh, logout } from "../controllers/authController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
+import { validateRegister, validateLogin } from "../validators/authValidator.js";
 import rateLimit from "express-rate-limit";
 
 // ─── Rate Limiter ─────────────────────────────────────────────────────────────
@@ -19,10 +20,10 @@ const authLimiter = rateLimit({
 const router = express.Router();
 
 // POST /api/admin/auth/register
-router.post("/register", authLimiter, register);
+router.post("/register", authLimiter, validateRegister, register);
 
 // POST /api/admin/auth/login
-router.post("/login", authLimiter, login);
+router.post("/login", authLimiter, validateLogin, login);
 
 // POST /api/admin/auth/refresh
 router.post("/refresh", refresh);

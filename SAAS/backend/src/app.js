@@ -1,12 +1,3 @@
-/**
- * app.js
- * ---------
- * Express application setup and middleware configuration.
- * This module creates and configures the Express app instance,
- * registers all global middleware, mounts all routes, and
- * exports the app for use by the server entry point (server.js).
- */
-
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -16,7 +7,11 @@ import morgan from "morgan";
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
 // ADMIN routes (JWT protected)
-import authRoutes from "./api/admin/routes/authRoutes.js";
+import authRoutes   from "./api/admin/routes/authRoutes.js";
+import userRoutes   from "./api/admin/routes/userRoutes.js";
+
+// PUBLIC routes (no JWT required)
+import catalogRoutes from "./api/public/routes/catalogRoutes.js";
 
 // ─── Error Middleware ─────────────────────────────────────────────────────────
 // Must be imported and used LAST — after all routes
@@ -57,19 +52,18 @@ app.get("/health", (req, res) => {
 
 // ─── PUBLIC Routes (NO JWT) ───────────────────────────────────────────────────
 // Customer-facing APIs — anyone with a machine_id can call these
-// Will be wired here in Day 6 when public catalog controller is built:
-// import catalogRoutes from "./api/public/routes/catalogRoutes.js";
-// app.use("/api/public/catalog", catalogRoutes);
+app.use("/api/public/catalog", catalogRoutes);
 
 // ─── ADMIN Routes (JWT REQUIRED) ──────────────────────────────────────────────
-// These are not protected here directly — protection is per-route via authMiddleware
+// Auth routes — login/register/refresh are PUBLIC, logout is protected per-route
 app.use("/api/admin/auth", authRoutes);
 
+// User routes — ALL protected (authMiddleware + tenantMiddleware applied at router level)
+app.use("/api/admin/users", userRoutes);
+
 // More admin routes will be added here in Week 3+:
-// import userRoutes   from "./api/admin/routes/userRoutes.js";
 // import deviceRoutes from "./api/admin/routes/deviceRoutes.js";
-// app.use("/api/admin/users",   authMiddleware, tenantMiddleware, userRoutes);
-// app.use("/api/admin/devices", authMiddleware, tenantMiddleware, deviceRoutes);
+// app.use("/api/admin/devices", deviceRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 // Catches any request that didn't match a route above

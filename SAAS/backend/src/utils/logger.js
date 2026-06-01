@@ -1,8 +1,7 @@
 import pino from "pino";
 
 const logger = pino({
-  // In development → show pretty colored logs in terminal
-  // In production  → output raw JSON (can be shipped to Datadog, Logtail, etc.)
+
   level: process.env.NODE_ENV === "production" ? "warn" : "debug",
 
   transport:
@@ -26,16 +25,16 @@ export default logger;
 
   import logger from "../utils/logger.js";
 
-  ✅ INFO  — Something good happened
+  INFO  — Something good happened
   logger.info("Server started on port 5000");
   logger.info({ user_id: "abc" }, "User registered");
 
-  ✅ WARN  — Something suspicious
+  WARN  — Something suspicious
   logger.warn({ email }, "Failed login attempt");
 
-  ✅ ERROR — Something broke
+  ERROR — Something broke
   logger.error({ err: error }, "Unhandled error in controller");
 
-  ✅ DEBUG — Dev-only details (won't show in production)
+  DEBUG — Dev-only details (won't show in production)
   logger.debug({ body: req.body }, "Incoming request body");
 */

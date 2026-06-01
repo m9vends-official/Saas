@@ -1,16 +1,10 @@
 import { loginUser, registerUser, refreshTokenService, logoutUser } from "../../../services/authService.js";
-import ApiError from "../../../utils/ApiError.js";
 
 // ─── POST /api/admin/auth/register ────────────────────────────────────────────
 export const register = async (req, res, next) => {
   try {
+    // req.body is already validated and sanitized by validateRegister middleware
     const { company_id, name, email, password, role } = req.body;
-
-    // Basic presence check — full zod validation comes in Day 7
-    if (!company_id || !name || !email || !password || !role) {
-      // Use ApiError — consistent error format across the whole app
-      throw ApiError.badRequest("All fields are required: company_id, name, email, password, role");
-    }
 
     // ✅ Register logic moved to service layer (separation of concerns)
     const user = await registerUser({ company_id, name, email, password, role });
@@ -30,11 +24,8 @@ export const register = async (req, res, next) => {
 // ─── POST /api/admin/auth/login ───────────────────────────────────────────────
 export const login = async (req, res, next) => {
   try {
+    // req.body is already validated by validateLogin middleware
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      throw ApiError.badRequest("Email and password are required");
-    }
 
     const { accessToken, refreshToken, user } = await loginUser({ email, password });
 

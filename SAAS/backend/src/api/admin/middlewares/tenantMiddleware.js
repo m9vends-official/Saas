@@ -8,8 +8,7 @@ import ApiError from "../../../utils/ApiError.js";
 // so controllers can ALWAYS use it without manually pulling from req.user.
 //
 // RULE: Every admin DB query MUST filter by req.company_id
-// ❌ User.find()
-// ✅ User.find({ company_id: req.company_id })
+// User.find({ company_id: req.company_id })
 export const tenantMiddleware = (req, res, next) => {
   if (!req.user || !req.user.company_id) {
     return next(ApiError.unauthorized("Tenant context missing. Ensure you are authenticated."));

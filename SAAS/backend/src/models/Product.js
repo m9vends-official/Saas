@@ -31,7 +31,6 @@ const productSchema = new mongoose.Schema(
       min: [0, "Price cannot be negative"],
     },
 
-    // ✅ Fixed: was `boolean` (lowercase) — JavaScript type is `Boolean`
     is_available: {
       type: Boolean,
       default: true,

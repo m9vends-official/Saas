@@ -26,7 +26,7 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error("❌ Invalid environment variables:");
+  console.error("Invalid environment variables:");
   console.error(parsed.error.format());
   process.exit(1); // Hard stop — do NOT start the server with bad config
 }

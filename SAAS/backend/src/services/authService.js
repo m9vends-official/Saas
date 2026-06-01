@@ -7,11 +7,9 @@ import jwt from "jsonwebtoken";
 
 // ─── Login ────────────────────────────────────────────────────────────────────
 export const loginUser = async ({ email, password }) => {
-  // Fixed: was User.find() which returns array — must use findOne()
   const user = await User.findOne({ email });
 
   if (!user) {
-    // Use same message for both "no user" and "wrong password"
     // Never reveal which one failed — prevents user enumeration attacks
     throw ApiError.unauthorized("Invalid credentials");
   }
@@ -20,8 +18,6 @@ export const loginUser = async ({ email, password }) => {
     throw ApiError.forbidden("Your account has been deactivated. Contact your admin.");
   }
 
-  // Fixed: was loginUser(email, password) called with req.body object
-  // Now destructures correctly from the single object argument
   const isMatch = await bcrypt.compare(password, user.password_hash);
 
   if (!isMatch) {
@@ -62,6 +58,7 @@ export const loginUser = async ({ email, password }) => {
 export const registerUser = async ({ company_id, name, email, password, role }) => {
   // Check if email already exists — give a clean 409 conflict error
   const existingUser = await User.findOne({ email });
+  
   if (existingUser) {
     throw ApiError.conflict("A user with this email already exists");
   }
