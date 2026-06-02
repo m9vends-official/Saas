@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 import logger from "../utils/logger.js";
+import "../models/User.js";
+import "../models/Company.js";
+import "../models/Device.js";
+import "../models/Product.js";
+import "../models/MachineCatalog.js";
 
 export const connectDB = async () => {
   try {

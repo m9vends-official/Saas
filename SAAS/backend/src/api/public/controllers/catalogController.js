@@ -1,6 +1,5 @@
 import Device from "../../../models/Device.js";
 import MachineCatalog from "../../../models/MachineCatalog.js";
-import "../../../models/Product.js"; // Must be imported so Mongoose registers the schema before populate() runs
 import ApiError from "../../../utils/ApiError.js";
 import logger from "../../../utils/logger.js";
 
