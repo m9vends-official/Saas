@@ -4,19 +4,22 @@ import { authMiddleware }   from "../middlewares/authMiddleware.js";
 import { tenantMiddleware } from "../middlewares/tenantMiddleware.js";
 import { authorizeRoles }   from "../middlewares/rbacMiddleware.js";
 import { addCatalogSchema, updateCatalogSchema } from "../validators/catalogValidator.js";
-
+import validate from "../../../utils/validate.js";
 
 const router = Router();
 
+// ─── Apply to ALL catalog admin routes ───────────────────────────────────────
 router.use(authMiddleware);
 router.use(tenantMiddleware);
+router.use(authorizeRoles("SUPER_ADMIN", "ADMIN"));
 
-router.use(authorizeRoles("SUPER_ADMIN","ADMIN"));
+// POST /api/admin/catalog
+router.post("/", validate(addCatalogSchema), addProduct);
 
-router.post("/",addProduct);
+// PUT /api/admin/catalog/:id
+router.put("/:id", validate(updateCatalogSchema), updateEntry);
 
-router.put("/:id",updateEntry);
-
-router.delete("/:id",removeEntry);
+// DELETE /api/admin/catalog/:id
+router.delete("/:id", removeEntry);
 
 export default router;

@@ -7,15 +7,12 @@ export const registerDevice = async ({ company_id, device_id, machine_name, loca
 
     const existing = await Device.findOne({ device_id });
     if (existing) {
-        throw ApiError.conflict('Device Already Exists');
+        throw ApiError.conflict(`Device '${device_id}' is already registered`);
     }
 
-    const device = await Device.create({
-        company_id: company_id,
-        device_id: device_id,
-        machine_name: machine_name,
-        location: location
-    });
+    const device = await Device.create({ company_id, device_id, machine_name, location });
+
+    logger.info({ device_id: device.device_id, company_id }, "Device registered");
 
     return device;
 }
@@ -56,8 +53,10 @@ export const updateDeviceStatus = async (company_id, id, status) => {
     )
 
     if (!device) {
-        throw ApiError.notFound("Device not Found");
+        throw ApiError.notFound("Device not found");
     }
 
+    logger.info({ device_id: device.device_id, status }, "Device status updated");
+
     return device;
-}
+};
