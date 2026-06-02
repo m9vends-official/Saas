@@ -61,9 +61,11 @@ app.use("/api/admin/auth", authRoutes);
 // User routes — ALL protected (authMiddleware + tenantMiddleware applied at router level)
 app.use("/api/admin/users", userRoutes);
 
+
+
 // More admin routes will be added here in Week 3+:
-// import deviceRoutes from "./api/admin/routes/deviceRoutes.js";
-// app.use("/api/admin/devices", deviceRoutes);
+import deviceRoutes from "./api/admin/routes/deviceRoutes.js";
+app.use("/api/admin/devices", deviceRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 // Catches any request that didn't match a route above
