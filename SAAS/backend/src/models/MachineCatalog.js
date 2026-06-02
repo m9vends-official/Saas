@@ -2,6 +2,13 @@ import mongoose from "mongoose";
 
 const machineCatalogSchema = new mongoose.Schema(
   {
+    // Tenant isolation — every admin query MUST filter by this
+    company_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Company",
+      required: true,
+    },
+
     // The machine this catalog entry belongs to (e.g. "VM-BPL-001")
     machine_id: {
       type: String,
@@ -64,6 +71,9 @@ const machineCatalogSchema = new mongoose.Schema(
 );
 
 // Compound index: one product per machine per slot — prevents duplicate entries
-machineCatalogSchema.index({ machine_id: 1, product_id: 1 }, { unique: true });
+machineCatalogSchema.index({ company_id: 1, machine_id: 1, product_id: 1 }, { unique: true });
+
+// Index for fast company-scoped catalog lookups in admin routes
+machineCatalogSchema.index({ company_id: 1, machine_id: 1 });
 
 export default mongoose.model("MachineCatalog", machineCatalogSchema);

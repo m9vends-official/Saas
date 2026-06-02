@@ -67,6 +67,10 @@ app.use("/api/admin/users", userRoutes);
 import deviceRoutes from "./api/admin/routes/deviceRoutes.js";
 app.use("/api/admin/devices", deviceRoutes);
 
+import adminCatalogRoutes from "./api/admin/routes/adminCatalogRoutes.js";
+app.use("/api/admin/catalog", adminCatalogRoutes);
+
+
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 // Catches any request that didn't match a route above
 app.use((req, res) => {

@@ -28,7 +28,7 @@ export const listDevices = async (req, res, next) => {
 
 export const getDevice = async (req, res, next) => {
     try {
-        const device = await deviceService.getDeviceById(req.company_id, req.param.id);
+        const device = await deviceService.getDeviceById(req.company_id, req.params.id);
 
         res.json({
             success: true,

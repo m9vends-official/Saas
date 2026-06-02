@@ -1,8 +1,8 @@
-import { authMiddleware } from "../middlewares/authMiddleware";
-import express from express;
-import { tenantMiddleware } from "../middlewares/tenantMiddleware";
-import { authorizeRoles } from "../middlewares/rbacMiddleware";
-import { createDevice, getDevice, listDevices, updateDevice } from "../controllers/deviceController";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+import express from "express";
+import { tenantMiddleware } from "../middlewares/tenantMiddleware.js";
+import { authorizeRoles } from "../middlewares/rbacMiddleware.js";
+import { createDevice, getDevice, listDevices, updateDevice } from "../controllers/deviceController.js";
 
 const router = express.Router();
 
