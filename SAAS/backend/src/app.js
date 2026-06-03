@@ -7,8 +7,11 @@ import morgan from "morgan";
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
 // ADMIN routes (JWT protected)
-import authRoutes   from "./api/admin/routes/authRoutes.js";
-import userRoutes   from "./api/admin/routes/userRoutes.js";
+import authRoutes         from "./api/admin/routes/authRoutes.js";
+import userRoutes         from "./api/admin/routes/userRoutes.js";
+import deviceRoutes       from "./api/admin/routes/deviceRoutes.js";
+import adminCatalogRoutes from "./api/admin/routes/adminCatalogRoutes.js";
+import productRoutes      from "./api/admin/routes/productRoutes.js";
 
 // PUBLIC routes (no JWT required)
 import catalogRoutes from "./api/public/routes/catalogRoutes.js";
@@ -62,13 +65,9 @@ app.use("/api/admin/auth", authRoutes);
 app.use("/api/admin/users", userRoutes);
 
 
-
-// More admin routes will be added here in Week 3+:
-import deviceRoutes from "./api/admin/routes/deviceRoutes.js";
-app.use("/api/admin/devices", deviceRoutes);
-
-import adminCatalogRoutes from "./api/admin/routes/adminCatalogRoutes.js";
-app.use("/api/admin/catalog", adminCatalogRoutes);
+app.use("/api/admin/devices",  deviceRoutes);
+app.use("/api/admin/catalog",  adminCatalogRoutes);
+app.use("/api/admin/products", productRoutes);
 
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────

@@ -59,8 +59,30 @@ const productSchema = new mongoose.Schema(
       min: 0,
       max: 100,
     },
+
+    // Change #5 — soft delete support
+    // Never hard-delete products — machine catalogs & sales history reference them
+    is_deleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    deleted_at: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
+
+// Change #6 — Compound indexes for M9Vends query patterns
+// SKU uniqueness per company (sparse: ignore docs where sku is null)
+productSchema.index({ company_id: 1, sku: 1 }, { unique: true, sparse: true });
+
+// Fast category-scoped listing
+productSchema.index({ company_id: 1, category: 1 });
+
+// Fast name-scoped searches (also supports text prefix range queries)
+productSchema.index({ company_id: 1, product_name: 1 });
 
 export default mongoose.model("Product", productSchema);
