@@ -71,3 +71,9 @@ export const removeCatalogEntry = async (company_id,catalogId) => {
 
     return entry;
 };
+
+export const getMachineCatalog = async (company_id, machine_id) => {
+    return MachineCatalog.find({company_id, machine_id})
+       .populate("product_id","product_name price image_url")
+       .sort({slot_label: 1});
+}

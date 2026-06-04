@@ -22,4 +22,7 @@ router.put("/:id", validate(updateCatalogSchema), updateEntry);
 // DELETE /api/admin/catalog/:id
 router.delete("/:id", removeEntry);
 
+// GET /api/admin/catalog?machine_id=VM-BPL-001
+router.get("/", listCatalogEntries);
+
 export default router;

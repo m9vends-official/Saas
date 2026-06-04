@@ -44,7 +44,7 @@ export const updateDeviceStatus = async (company_id, id, status) => {
             company_id,
         },
         {
-            status,
+            status, ...(status === "ACTIVE" && { last_seen_at: new Date() }),
         },
         {
             new: true,
