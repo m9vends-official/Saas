@@ -1,6 +1,7 @@
 import User from "../../../models/User.js";
 import ApiError from "../../../utils/ApiError.js";
 import logger from "../../../utils/logger.js";
+import * as userService from "../../../services/userService.js";
 
 // ─── GET /api/admin/users/me ──────────────────────────────────────────────────
 // Returns the full profile of the currently authenticated user.
@@ -40,3 +41,41 @@ export const getMe = async (req, res, next) => {
     next(error);
   }
 };
+
+// ─── GET /api/admin/users 
+export const listUsers = async (req, res, next) => {
+  try {
+    const users = await userService.listCompanyUsers(req.company_id);
+    res.json({
+      success: true,
+      data: users
+    })
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ─── POST /api/admin/users/invite 
+export const inviteUser = async (req, res, next) => {
+
+  try {
+    const user = await userService.inviteUser({
+      company_id: req.company_id,
+      ...req.body,
+    })
+    res.status(201).json({success: true,data: user});
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ─── PATCH /api/admin/users/:id/status 
+export const updateUserStatus = async (req, res, next) => {
+
+  try {
+    const user = await userService.updateUserStatus(req.company_id, req.params.id, req.body.is_active)  
+    res.json({success: true, data: user});
+  } catch (error) {
+    next(error);
+  }
+}
