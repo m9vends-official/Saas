@@ -1,15 +1,17 @@
-import User from "../models/User"
-import bcrypt from "bcryptjs";
+import User from "../models/User.js";
+import bcrypt from "bcrypt";
 import logger from "../utils/logger.js";
 import ApiError from "../utils/ApiError.js";
 
 export const listCompanyUsers = async (company_id) => {
     return User.find({company_id})
        .select("-password_hash")
-       .sort({createdAt: -1})
+       .sort({createdAt: -1});
 }
 
-export const inviteUser = async (company_id, name, email, password, role) => {
+// BUG 2 FIX: Changed from positional args to destructured object
+// to match how userController.js calls: userService.inviteUser({ company_id, ...req.body })
+export const inviteUser = async ({ company_id, name, email, password, role }) => {
 
     const existing = await User.findOne({email});
     if(existing){
@@ -17,7 +19,7 @@ export const inviteUser = async (company_id, name, email, password, role) => {
     }
 
     const salt = await bcrypt.genSalt(10);
-    const password_hash = await bcrypt.hash(password,salt);
+    const password_hash = await bcrypt.hash(password, salt);
 
     const user = await User.create({
         company_id,
@@ -25,9 +27,9 @@ export const inviteUser = async (company_id, name, email, password, role) => {
         email,
         password_hash,
         role,
-    })
+    });
 
-    logger.info({user_id: user._id, role},"New user invited");
+    logger.info({user_id: user._id, role}, "New user invited");
 
     const {password_hash: _, ...safeUser} = user.toObject();
     return safeUser;

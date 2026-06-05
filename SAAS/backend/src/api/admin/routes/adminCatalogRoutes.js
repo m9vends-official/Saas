@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addProduct, updateEntry, removeEntry } from "../controllers/adminCatalogController.js";
+import { addProduct, updateEntry, removeEntry, listCatalogEntries } from "../controllers/adminCatalogController.js";
 import { authMiddleware }   from "../middlewares/authMiddleware.js";
 import { tenantMiddleware } from "../middlewares/tenantMiddleware.js";
 import { authorizeRoles }   from "../middlewares/rbacMiddleware.js";
