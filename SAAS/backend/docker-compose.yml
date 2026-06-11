@@ -1,0 +1,49 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  M9Vends — Phase 3 Docker Stack
+#  Services: MongoDB + Mosquitto MQTT Broker
+#  Run: docker-compose up -d
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── MongoDB ────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7.0
+    container_name: m9vends_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"           # Host:Container — Compass connects to localhost:27017
+    volumes:
+      - mongo_data:/data/db     # Persist data across restarts
+    environment:
+      MONGO_INITDB_DATABASE: saas
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Mosquitto MQTT Broker ───────────────────────────────────────────────────
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: m9vends_mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"             # MQTT (TCP)   — your Node.js connects here
+      - "9001:9001"             # MQTT over WS — MQTT Explorer (WebSocket)
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "healthcheck", "-m", "ping", "-u", "admin", "-P", "admin123"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+# ── Named Volumes (Docker manages storage locations) ───────────────────────────
+volumes:
+  mongo_data:
+    driver: local

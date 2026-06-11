@@ -5,7 +5,10 @@ import ApiError from "../utils/ApiError.js";
 
 export const addProductToMachine = async ({ company_id, machine_id, product_id, stock, slot_label, price_override }) => {
 
-    const machine = await Device.findOne({company_id,device_id: machine_id});
+    // Normalize to uppercase — Device schema stores device_id as uppercase
+    const normalizedMachineId = machine_id.toUpperCase();
+
+    const machine = await Device.findOne({ company_id, device_id: normalizedMachineId });
 
     if(!machine){
         throw ApiError.notFound("Machine not Found");
@@ -18,9 +21,9 @@ export const addProductToMachine = async ({ company_id, machine_id, product_id, 
     }
 
     const existing = await MachineCatalog.findOne({
-        machine_id,
+        machine_id: normalizedMachineId,
         product_id,
-    })
+    });
 
     if(existing){
         throw ApiError.conflict("Product Already exists in machine catalog");
@@ -28,12 +31,12 @@ export const addProductToMachine = async ({ company_id, machine_id, product_id, 
 
     return MachineCatalog.create({
         company_id,
-        machine_id,
+        machine_id: normalizedMachineId,
         product_id,
         stock,
         slot_label,
         price_override,
-    })
+    });
 }
 
 export const updateCatalogEntry = async (company_id, catalogId, updates) => {
@@ -73,7 +76,8 @@ export const removeCatalogEntry = async (company_id,catalogId) => {
 };
 
 export const getMachineCatalog = async (company_id, machine_id) => {
-    return MachineCatalog.find({company_id, machine_id})
-       .populate("product_id","product_name price image_url")
-       .sort({slot_label: 1});
+    const normalizedMachineId = machine_id?.toUpperCase();
+    return MachineCatalog.find({ company_id, machine_id: normalizedMachineId })
+       .populate("product_id", "product_name price image_url")
+       .sort({ slot_label: 1 });
 }
