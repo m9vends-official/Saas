@@ -12,6 +12,7 @@ import userRoutes         from "./api/admin/routes/userRoutes.js";
 import deviceRoutes       from "./api/admin/routes/deviceRoutes.js";
 import adminCatalogRoutes from "./api/admin/routes/adminCatalogRoutes.js";
 import productRoutes      from "./api/admin/routes/productRoutes.js";
+// telemetryRoutes → Phase 3 (MQTT/IoT) — will be added by the IoT team
 
 // PUBLIC routes (no JWT required)
 import catalogRoutes from "./api/public/routes/catalogRoutes.js";
@@ -67,8 +68,7 @@ app.use("/api/admin/users", userRoutes);
 
 app.use("/api/admin/devices",  deviceRoutes);
 app.use("/api/admin/catalog",  adminCatalogRoutes);
-app.use("/api/admin/products", productRoutes);
-
+app.use("/api/admin/products",  productRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 // Catches any request that didn't match a route above
