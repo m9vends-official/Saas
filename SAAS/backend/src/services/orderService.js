@@ -45,7 +45,7 @@ export const placeOrder = async ({machine_id, items}) => {
         const subtotal = unit_price* item.quantity;
 
         resolvedItems.push({
-            catalog_id: entry_id,
+            catalog_id: entry._id,
             product_id: entry.product_id._id,
             product_name: entry.product_id.product_name,
             quantity: item.quantity,
@@ -107,23 +107,38 @@ export const getOrderStatus = async (orderId) => {
 
 // ─── Handle Webhook — Mark Order as PAID 
 // Called internally from the webhook controller after signature is verified.
-export const markOrderPaid = async ({razorpay_order_id, razorpay_payment}) => {
+export const markOrderPaid = async ({razorpay_order_id,razorpay_payment_id,}) => {
     const order = await Order.findOneAndUpdate(
-        {razorpay_order_id, payment_status: "PENDING"},
+        {
+            razorpay_order_id,
+            payment_status: "PENDING",
+        },
         {
             payment_status: "PAID",
             order_status: "DISPENSING",
             razorpay_payment_id,
             paid_at: new Date(),
         },
-        {new: true}
-    )
+        {
+            new: true,
+        }
+    );
 
     if (!order) {
-    logger.warn({ razorpay_order_id }, "Webhook received for unknown or already-processed order");
-    return null;
+        logger.warn({ razorpay_order_id },"Webhook received for unknown or already-processed order");
+        return null;
     }
-}
+
+    logger.info(
+        {
+            order_id: order._id,
+            razorpay_order_id,
+        },
+        "Order marked as paid"
+    );
+
+    return order;
+};
 
 // list orders (ADMIN)
 
