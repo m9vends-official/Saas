@@ -16,15 +16,13 @@ const envSchema = z.object({
   ACCESS_TOKEN_EXPIRY:  z.string().default("1d"),
   REFRESH_TOKEN_EXPIRY: z.string().default("7d"),
 
-  // ── Phase 3 stubs (optional — will be wired in Phase 3) ─────────────────
-  MQTT_BROKER_URL: z.string().default("mqtt://localhost:1883"),
-  INFLUXDB_URL:    z.string().default("http://localhost:8086"),
-  INFLUXDB_TOKEN:  z.string().default(""),
-  INFLUXDB_ORG:    z.string().default("m9vends"),
-  INFLUXDB_BUCKET: z.string().default("telemetry"),
-
   // ── Frontend origin for CORS ─────────────────────────────────────────────
   FRONTEND_URL: z.string().default("http://localhost:5173"),
+
+  // ── Phase 4: Razorpay ────────────────────────────────────────────────────
+  // Optional in dev (server boots without them) — required in production
+  RAZORPAY_KEY_ID:     z.string().default(""),
+  RAZORPAY_KEY_SECRET: z.string().default(""),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -44,24 +42,21 @@ import logger from "./utils/logger.js";
 
 const PORT = process.env.PORT || 5000;
 
-// ─── HTTP Server ──────────────────────────────────────────────────────────────
-// NOTE: Wrapped in http.createServer so Socket.io can be attached in Phase 3.
 const httpServer = http.createServer(app);
 
-// ─── Boot Sequence ────────────────────────────────────────────────────────────
 async function startServer() {
   // 1. Connect to MongoDB (must succeed before anything else)
   await connectDB();
 
   // 2. Start listening
   httpServer.listen(PORT, () => {
-    logger.info(`🚀 Server running on http://localhost:${PORT}`);
+    logger.info(`Server running on http://localhost:${PORT}`);
     logger.info(`Health check → http://localhost:${PORT}/health`);
     logger.info(`Environment → ${process.env.NODE_ENV}`);
   });
 }
 
-// ─── Graceful Shutdown ────────────────────────────────────────────────────────
+//  Graceful Shutdown 
 function shutdown(signal) {
   logger.info(`${signal} received — shutting down gracefully`);
   process.exit(0);
