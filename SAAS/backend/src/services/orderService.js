@@ -154,3 +154,34 @@ export const getCompanyOrders = async ({company_id, machine_id, status, page=1, 
 
     return {orders, total, page, limit};
 }
+
+// Confirm Cash Payment 
+// Called by admin when customer physically pays cash at the machine.
+// No Razorpay involved — admin manually confirms the payment.
+
+export const confirmCashPayment = async ({company_id,orderId,collected_by}) => {
+
+    const order = await Order.findOneAndUpdate(
+        {
+            _id: orderId,
+            company_id,
+            payment_status: "PENDING",
+        },
+        {
+            payment_status: "PAID",
+            order_status: "DISPENSING",
+            payment_method: "CASH",
+            paid_at: new Date(),
+        },
+        {new: true}
+    )
+
+    if(!order){
+        throw ApiError.notFound("Order not found, alread paid, or does not belong to your company");
+    }
+    logger.info({
+        order_id: order._id, machine_id: order.machine_id, collected_by
+    },"Cash payment confirmed by admin")
+
+    return order;
+}
