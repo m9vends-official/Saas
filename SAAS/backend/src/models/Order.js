@@ -82,7 +82,12 @@ const orderSchema = new mongoose.Schema({
       paid_at: {
         type: Date,
         default: null,
-  },
+      },
+      payment_method: {
+        type: String,
+        enum: ["UPI","CASH","CARD","WALLET"],
+        default: "UPI",
+      },
 },{timestamps: true});
 
 orderSchema.index({machine_id: 1, payment_status: 1});
