@@ -69,9 +69,9 @@ export const getSummary = async ({ company_id, from_date, to_date }) => {
 // Which vending machines earn the most
 
 export const getRevenueByMachine = async ({company_id, from_date, to_date}) => {
+
   const mongoose = (await import("mongoose")).default;
   const dateFilter = buildDateFilter(from_date, to_date);
-
 
   return Order.aggregate([
     {
@@ -101,4 +101,46 @@ export const getRevenueByMachine = async ({company_id, from_date, to_date}) => {
     {$sort: {total_revenue: -1}},// Highest earning first
   ]);
 };
+
+// 3. Top Products
+// Best selling products by quantity sold and revenue generated
+
+export const getTopProducts = async ({company_id, from_date, to_date, limit = 10}) => {
+  const mongoose = (await import("mongoose")).default;
+  const dateFilter = buildDateFilter(from_date, to_date);
+
+  return Order.aggregate([
+    {
+      $match: {
+        company_id: new mongoose.Types.ObjectId(company_id),
+        payment_status: "PAID",
+        ...dateFilter
+      }
+    },
+    // unwind items array - one doc per item
+    {
+      $group: {
+        _id: "$items.product_id",
+        product_name: {$first: "$items.product_name"},
+        total_quantity: {$sum: "$items.quantity"},
+        total_revenue: {$sum: "$items.subtotal"},
+        times_ordered: {$sum:1},
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        product_id: "$_id",
+        product_name: 1,
+        total_quantity: 1,
+        total_revenue: 1,
+        times_ordered: 1,
+      }
+    },
+    {$sort: {total_quantity: -1}},
+    {$limit: parseInt(limit)},
+  ]);
+};
+
+
 
