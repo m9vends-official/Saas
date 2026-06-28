@@ -64,3 +64,41 @@ export const getSummary = async ({ company_id, from_date, to_date }) => {
     avg_order_value: 0,
   };
 };
+
+// 2. Revenue by Machine 
+// Which vending machines earn the most
+
+export const getRevenueByMachine = async ({company_id, from_date, to_date}) => {
+  const mongoose = (await import("mongoose")).default;
+  const dateFilter = buildDateFilter(from_date, to_date);
+
+
+  return Order.aggregate([
+    {
+      $match: {
+        company_id: new mongoose.Types.ObjectId(company_id),
+        payment_status: "PAID",
+        ...dateFilter,
+      },
+    },
+    {
+      $group: {
+        _id: "$machine_id",
+        total_revenue: {$sum: "total_amount"},
+        total_orders: {$sum: 1},
+        avg_order: {$avg: "$total_amount"},
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        machine_id: "$_id",
+        total_revenue: 1,
+        total_orders: 1,
+        avg_order: {$round: ["$avg_order",2]},
+      },
+    },
+    {$sort: {total_revenue: -1}},// Highest earning first
+  ]);
+};
+
