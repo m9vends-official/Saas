@@ -142,5 +142,69 @@ export const getTopProducts = async ({company_id, from_date, to_date, limit = 10
   ]);
 };
 
+// 4. Revenue Over Time 
+// Daily / weekly / monthly revenue chart data
+
+export const getRevenueOverTime = async ({company_id, from_date, to_date, group_by = "day"}) => {
+  const mongoose = (await import("mongoose")).default;
+  const dateFilter = buildDateFilter(from_data, to_date);
+  // build date grouping based on period
+  const dateGroup = {
+    day: {
+      year: {$year: "$createdAt"},
+      month: {$month: "$createdAt"},
+      day: {$dayOfMonth: "$createdAt"},
+    },
+    week: {
+      year: { $isoWeekYear: "$createdAt"},
+      week: { $isoWeek: "$createdAt"}
+    },
+    month: {
+      year: { $year: "$createdAt" },
+      month: { $month: "$createdAt" }
+    }
+  }
+  const sortStages = {
+    day: {
+      "period.year": 1,
+      "period.month": 1,
+      "period.day": 1,
+    },
+    week: {
+      "period.year": 1,
+      "period.week": 1,
+    },
+    month: {
+      "period.year": 1,
+      "period.month": 1,
+    },
+  };
+
+  return Order.aggregate([
+    {
+      $match:{
+        company_id: new mongoose.Types.ObjectId(company_id);
+        payment_status: "PAID",
+        ...dateFilter
+      }
+    },
+    {
+      $group: {
+        _id: dateGroup[group_by] || dateGroup.day,
+        revenue: {$sum : "$total_amount"},
+        order_count: {$sum: 1},
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        period: "$_id",
+        revenue: 1,
+        order_count: 1,
+      },
+    },
+    {$sort: sortStages[group_by] || sortStages.day},
+  ])
+}
 
 
