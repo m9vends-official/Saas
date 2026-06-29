@@ -183,7 +183,7 @@ export const getRevenueOverTime = async ({company_id, from_date, to_date, group_
   return Order.aggregate([
     {
       $match:{
-        company_id: new mongoose.Types.ObjectId(company_id);
+        company_id: new mongoose.Types.ObjectId(company_id),
         payment_status: "PAID",
         ...dateFilter
       }
@@ -207,4 +207,37 @@ export const getRevenueOverTime = async ({company_id, from_date, to_date, group_
   ])
 }
 
+// 5. Payment Method Breakdown 
+// UPI vs CASH vs others — for reconciliation reports
+export const getPaymentMethodBreakdown = async ({ company_id, from_date, to_date }) => {
+  
+  const mongoose = (await import("mongoose")).default;
+  const dateFilter = buildDateFilter(from_date, to_date);
+
+  return Order.aggregate([
+    {
+      $match: {
+        company_id: new mongoose.Types.ObjectId(company_id),
+        payment_status: "PAID",
+        ...dateFilter,
+      },
+    },
+    {
+      $group: {
+        _id:          "$payment_method",
+        total_orders: { $sum: 1 },
+        total_revenue: { $sum: "$total_amount" },
+      },
+    },
+    {
+      $project: {
+        _id:           0,
+        method:        "$_id",
+        total_orders:  1,
+        total_revenue: 1,
+      },
+    },
+    { $sort: { total_revenue: -1 } },
+  ]);
+};
 
