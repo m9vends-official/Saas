@@ -13,11 +13,13 @@ import deviceRoutes       from "./api/admin/routes/deviceRoutes.js";
 import adminCatalogRoutes from "./api/admin/routes/adminCatalogRoutes.js";
 import productRoutes      from "./api/admin/routes/productRoutes.js";
 import adminOrderRoutes from "./api/admin/routes/orderRoutes.js";
+import analyticsRoutes from "./api/admin/routes/analyticsRoutes.js";
 // telemetryRoutes → Phase 3 (MQTT/IoT) — will be added by the IoT team
 
 // PUBLIC routes (no JWT required)
 import catalogRoutes from "./api/public/routes/catalogRoutes.js";
 import orderRoutes      from "./api/public/routes/orderRoutes.js";
+
 
 //  Error Middleware 
 // Must be imported and used LAST — after all routes
@@ -95,6 +97,9 @@ app.use("/api/public/order",   orderRoutes);
 
 // NOTE: webhook middleware in app.js captures raw body for /api/public/payment/webhook
 app.use("/api/public/payment", orderRoutes); 
+
+// Analytics routes - GET 
+app.use("/api/admin/analytics",analyticsRoutes);
 
 // 404 Handler 
 // Catches any request that didn't match a route above
