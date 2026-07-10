@@ -1,4 +1,5 @@
 import Order from "../models/Order.js";
+import mongoose from "mongoose"; // FIX: static import instead of repeated dynamic imports
 
 const buildDateFilter = (from_date, to_date) => {
   const filter = {};
@@ -16,7 +17,7 @@ export const getSummary = async ({ company_id, from_date, to_date }) => {
   const result = await Order.aggregate([
     {
       $match: {
-        company_id: new (await import("mongoose")).default.Types.ObjectId(company_id),
+        company_id: new mongoose.Types.ObjectId(company_id),
         ...dateFilter,
       },
     },
@@ -71,7 +72,7 @@ export const getSummary = async ({ company_id, from_date, to_date }) => {
 
 export const getRevenueByMachine = async ({company_id, from_date, to_date}) => {
 
-  const mongoose = (await import("mongoose")).default;
+  // mongoose imported at top of file
   const dateFilter = buildDateFilter(from_date, to_date);
 
   return Order.aggregate([
@@ -85,7 +86,7 @@ export const getRevenueByMachine = async ({company_id, from_date, to_date}) => {
     {
       $group: {
         _id: "$machine_id",
-        total_revenue: {$sum: "total_amount"},
+        total_revenue: {$sum: "$total_amount"}, // FIX: was missing $ prefix — was always returning 0
         total_orders: {$sum: 1},
         avg_order: {$avg: "$total_amount"},
       }
@@ -107,7 +108,7 @@ export const getRevenueByMachine = async ({company_id, from_date, to_date}) => {
 // Best selling products by quantity sold and revenue generated
 
 export const getTopProducts = async ({company_id, from_date, to_date, limit = 10}) => {
-  const mongoose = (await import("mongoose")).default;
+  // mongoose imported at top of file
   const dateFilter = buildDateFilter(from_date, to_date);
 
   return Order.aggregate([
@@ -118,7 +119,9 @@ export const getTopProducts = async ({company_id, from_date, to_date, limit = 10
         ...dateFilter
       }
     },
-    // unwind items array - one doc per item
+    // FIX: $unwind MUST come before $group to expand items array
+    // Without this, product_id is an array, not a single value
+    { $unwind: "$items" },
     {
       $group: {
         _id: "$items.product_id",
@@ -147,8 +150,8 @@ export const getTopProducts = async ({company_id, from_date, to_date, limit = 10
 // Daily / weekly / monthly revenue chart data
 
 export const getRevenueOverTime = async ({company_id, from_date, to_date, group_by = "day"}) => {
-  const mongoose = (await import("mongoose")).default;
-  const dateFilter = buildDateFilter(from_data, to_date);
+  // mongoose imported at top of file
+  const dateFilter = buildDateFilter(from_date, to_date);
   // build date grouping based on period
   const dateGroup = {
     day: {
@@ -212,7 +215,7 @@ export const getRevenueOverTime = async ({company_id, from_date, to_date, group_
 // UPI vs CASH vs others — for reconciliation reports
 export const getPaymentMethodBreakdown = async ({ company_id, from_date, to_date }) => {
   
-  const mongoose = (await import("mongoose")).default;
+  // mongoose imported at top of file
   const dateFilter = buildDateFilter(from_date, to_date);
 
   return Order.aggregate([

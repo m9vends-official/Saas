@@ -1,7 +1,7 @@
 import {Router} from "express";
 import {authMiddleware} from '../middlewares/authMiddleware.js'
 import {tenantMiddleware} from '../middlewares/tenantMiddleware.js'
-import { paymentMethods, revenueByMachine, revenueOverTime, summary, topProducts } from "../controllers/analyticsController";
+import { paymentMethods, revenueByMachine, revenueOverTime, summary, topProducts } from "../controllers/analyticsController.js";
 
 const router = Router();
 

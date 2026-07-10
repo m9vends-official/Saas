@@ -49,8 +49,17 @@ app.use((req, res, next)=>{
 // Parse incoming JSON request bodies
 app.use(express.json());
 
-// Enable CORS — allow frontend origins to call this backend
-app.use(cors());
+// Enable CORS — allow frontend with credentials (cookies for refresh token)
+app.use(cors({
+  origin: [
+    "http://localhost:5173",   // Vite dev server (admin dashboard)
+    "http://localhost:5174",   // Vite dev server (kiosk, if running both)
+    process.env.FRONTEND_URL,  // Production URL from .env
+  ].filter(Boolean),
+  credentials: true,           // Required for httpOnly cookie refresh token
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
 // Set secure HTTP response headers (XSS, clickjacking, MIME sniffing, etc.)
 app.use(helmet());
