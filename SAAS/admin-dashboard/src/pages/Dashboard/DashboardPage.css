@@ -1,0 +1,283 @@
+/* ── Dashboard Page ────────────────────────────────────────────────────────── */
+.dashboard {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-height: 100vh;
+}
+
+/* ── Page Header ─────────────────────────────────────────────────────────── */
+.dash-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.dash-title { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+.dash-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+.dash-date {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+}
+
+/* ── Stat Cards Row ──────────────────────────────────────────────────────── */
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.stat-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 150ms ease;
+}
+.stat-card:hover { border-color: var(--border-default); }
+
+.stat-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.stat-card-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.stat-card-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stat-card-icon.cyan   { background: rgba(56,189,248,0.12); color: var(--cyan); }
+.stat-card-icon.green  { background: var(--green-dim);       color: var(--green); }
+.stat-card-icon.amber  { background: var(--amber-dim);       color: var(--amber); }
+.stat-card-icon.purple { background: var(--purple-dim);      color: var(--purple); }
+
+.stat-card-value {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  line-height: 1;
+}
+.stat-card-value.green  { color: var(--green); }
+.stat-card-value.cyan   { color: var(--cyan); }
+.stat-card-value.amber  { color: var(--amber); }
+
+.stat-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.stat-trend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+}
+.stat-trend.up   { background: var(--green-dim);  color: var(--green); }
+.stat-trend.down { background: var(--red-dim);    color: var(--red); }
+.stat-trend.flat { background: var(--bg-elevated); color: var(--text-muted); }
+
+/* ── Charts Row ──────────────────────────────────────────────────────────── */
+.dash-charts {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 16px;
+}
+
+.chart-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+}
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.chart-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.chart-card-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* period selector */
+.period-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg-elevated);
+  padding: 3px;
+  border-radius: 6px;
+}
+.period-tab {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 150ms ease;
+  font-family: var(--font-mono);
+}
+.period-tab:hover  { color: var(--text-primary); }
+.period-tab.active {
+  background: var(--bg-surface);
+  color: var(--cyan);
+  border: 1px solid var(--border-subtle);
+}
+
+/* donut legend */
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+.donut-legend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.donut-legend-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.donut-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.donut-value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ── Tables Row ──────────────────────────────────────────────────────────── */
+.dash-tables {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.table-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.table-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.table-card-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.table-card-link  {
+  font-size: 12px;
+  color: var(--cyan);
+  cursor: pointer;
+  font-weight: 500;
+}
+.table-card-link:hover { opacity: 0.8; }
+
+table.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.dash-table th {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 10px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+}
+.dash-table td {
+  padding: 12px 20px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.dash-table tr:last-child td { border-bottom: none; }
+.dash-table tr:hover td { background: var(--bg-hover); }
+
+.td-mono {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+}
+.td-revenue {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--green);
+}
+
+/* ── Skeleton Loading ────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-hover) 50%,
+    var(--bg-elevated) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+.skeleton-stat  { height: 100px; border-radius: var(--radius-lg); }
+.skeleton-chart { height: 260px; border-radius: var(--radius-lg); }
+.skeleton-table { height: 220px; border-radius: var(--radius-lg); }
+
+/* ── Empty State ─────────────────────────────────────────────────────────── */
+.dash-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+  gap: 8px;
+}
