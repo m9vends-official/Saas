@@ -126,11 +126,12 @@ export default function DashboardPage() {
 
   const { data: devicesData } = useQuery({
     queryKey: ['devices'],
-    queryFn:  () => fetchDevices().then(r => r.data),
+    // FIX: return r.data.data (array) so the cache is consistent with DevicesPage
+    queryFn:  () => fetchDevices().then(r => r.data.data),
   })
 
-  const activeDevices = devicesData?.data?.filter(d => d.status === 'ACTIVE').length ?? 0
-  const totalDevices  = devicesData?.data?.length ?? 0
+  const activeDevices = devicesData?.filter(d => d.status === 'ACTIVE').length ?? 0
+  const totalDevices  = devicesData?.length ?? 0
   const recentOrders  = ordersData?.orders ?? []
 
   // ── Pie colors ───────────────────────────────────────────────────────────

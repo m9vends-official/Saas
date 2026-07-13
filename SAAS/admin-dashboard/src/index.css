@@ -232,6 +232,21 @@ ul, ol { list-style: none; }
 .input.error { border-color: var(--red); }
 .input-error { font-size: 12px; color: var(--red); margin-top: 4px; }
 
+/* Select element — dark themed */
+select.input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%234e6280' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  cursor: pointer;
+}
+select.input option { background: #0a1220; color: #f1f5f9; }
+
+/* Textarea */
+textarea.input { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+
 /* ── Divider ─────────────────────────────────────────────────────────────── */
 .divider {
   height: 1px;
