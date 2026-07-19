@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
     company_id: {
-      type: mongoose.Schema.Types.ObjectId, // ✅ Fixed: was String, must be ObjectId to ref Company
+      type: mongoose.Schema.Types.ObjectId, 
       ref: "Company",
       required: true,
     },
@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      lowercase: true,   // Always store emails in lowercase
+      lowercase: true,   
       trim: true,
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Please provide a valid email"],
     },
@@ -38,6 +38,8 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+
+    devices: [mongoose.Schema.Types.ObjectId],
 
     // Added: track last login time — useful for admin audits and security
     last_login_at: {

@@ -2,7 +2,6 @@ import Device from "../models/Device.js"
 import ApiError from "../utils/ApiError.js";
 import logger from "../utils/logger.js";
 
-
 export const registerDevice = async ({ company_id, device_id, machine_name, location }) => {
 
     const existing = await Device.findOne({ device_id });
