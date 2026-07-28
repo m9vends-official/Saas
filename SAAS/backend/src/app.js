@@ -9,7 +9,6 @@ import morgan from "morgan";
 // ADMIN routes (JWT protected)
 import authRoutes         from "./api/admin/routes/authRoutes.js";
 import userRoutes         from "./api/admin/routes/userRoutes.js";
-import deviceRoutes       from "./api/admin/routes/deviceRoutes.js";
 import adminCatalogRoutes from "./api/admin/routes/adminCatalogRoutes.js";
 import productRoutes      from "./api/admin/routes/productRoutes.js";
 import adminOrderRoutes from "./api/admin/routes/orderRoutes.js";
@@ -94,8 +93,6 @@ app.use("/api/admin/auth", authRoutes);
 // User routes — ALL protected (authMiddleware + tenantMiddleware applied at router level)
 app.use("/api/admin/users", userRoutes);
 
-
-app.use("/api/admin/devices",  deviceRoutes);
 app.use("/api/admin/catalog",  adminCatalogRoutes);
 app.use("/api/admin/products", productRoutes);
 app.use("/api/admin/orders",   adminOrderRoutes); 

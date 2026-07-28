@@ -75,7 +75,6 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Change #6 — Compound indexes for M9Vends query patterns
 // SKU uniqueness per company (sparse: ignore docs where sku is null)
 productSchema.index({ company_id: 1, sku: 1 }, { unique: true, sparse: true });
 

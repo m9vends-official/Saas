@@ -1,4 +1,4 @@
-import { getOrderStatus, markOrderPaid, placeOrder } from "../../../services/orderService.js"; // FIX: missing .js extension
+import { cancelOrder, getOrderStatus, markOrderPaid, placeOrder } from "../../../services/orderService.js";
 import { verifyWebhookSignature } from "../../../services/paymentService.js";                  // FIX: missing .js extension
 import ApiError from "../../../utils/ApiError.js";                                              // FIX: missing .js extension
 import logger from "../../../utils/logger.js";                                                  // FIX: logger was used but never imported
@@ -8,14 +8,25 @@ import logger from "../../../utils/logger.js";                                  
 // Machine screen calls this when customer confirms cart
 export const createOrder = async (req, res, next) => {
     try {
-        const { machine_id, items } = req.body;
+        const { machine_id, items, payment_method } = req.body;
 
-        const result = await placeOrder({ machine_id, items });
+        const result = await placeOrder({ machine_id, items, payment_method });
 
         res.status(201).json({
             success: true,
             data:    result,
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// POST /api/public/order/:id/cancel
+// Kiosk calls this when UPI timer expires or customer presses Cancel
+export const cancelOrderHandler = async (req, res, next) => {
+    try {
+        await cancelOrder(req.params.id);
+        res.json({ success: true, message: 'Order cancelled successfully' });
     } catch (error) {
         next(error);
     }

@@ -1,20 +1,13 @@
 import MachineCatalog from "../models/MachineCatalog.js";
-import Device from "../models/Device.js";
 import Product from "../models/Product.js";
 import ApiError from "../utils/ApiError.js";
 
 export const addProductToMachine = async ({ company_id, machine_id, product_id, stock, slot_label, price_override }) => {
 
-    // Normalize to uppercase — Device schema stores device_id as uppercase
-    const normalizedMachineId = machine_id.toUpperCase();
-
-    const machine = await Device.findOne({ company_id, device_id: normalizedMachineId });
-
-    if(!machine){
-        throw ApiError.notFound("Machine not Found");
-    }
+    const normalizedMachineId = machine_id;
 
     const product = await Product.findOne({_id: product_id, company_id});
+
 
     if(!product){
         throw ApiError.notFound("Product not found");
@@ -76,7 +69,7 @@ export const removeCatalogEntry = async (company_id,catalogId) => {
 };
 
 export const getMachineCatalog = async (company_id, machine_id) => {
-    const normalizedMachineId = machine_id?.toUpperCase();
+    const normalizedMachineId = machine_id;
     return MachineCatalog.find({ company_id, machine_id: normalizedMachineId })
        .populate("product_id", "product_name price image_url")
        .sort({ slot_label: 1 });

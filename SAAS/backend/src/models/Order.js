@@ -35,10 +35,10 @@ const orderSchema = new mongoose.Schema({
         ref: "Company",
         required: true,
     },
+    // machine_id = deviceVID (lowercase hex) provided by IoT backend
     machine_id: {
         type: String,
         required: true,
-        uppercase: true,
         trim: true
     },
 

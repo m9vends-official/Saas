@@ -9,11 +9,10 @@ const machineCatalogSchema = new mongoose.Schema(
       required: true,
     },
 
-    // The machine this catalog entry belongs to (e.g. "VM-BPL-001")
+    // The machine this catalog entry belongs to (deviceVID, e.g. "60d5ec49f3e4e9001f3b2e99")
     machine_id: {
       type: String,
       required: true,
-      uppercase: true,
       trim: true,
     },
 
