@@ -1,0 +1,46 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Node / SaaS backend
+node_modules/
+SAAS/backend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python / FastAPI model service
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Machine learning artifacts
+*.pkl
+*.joblib
+*.model
+*.pt
+models/
+checkpoints/
+
+# Local runtime output
+logs/
+*.log
+*.pid
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

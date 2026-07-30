@@ -120,6 +120,95 @@ Base URL (Local): `http://localhost:5000`
 
 ---
 
+## 5. Machine Anomaly Model API
+
+The SaaS backend proxies these requests to the FastAPI service in `anomaly_detection`.
+
+Set the model service URL in the Node backend environment:
+
+```env
+ML_MODEL_API_URL=http://localhost:8000
+ML_MODEL_TIMEOUT_MS=5000
+```
+
+### POST `/api/public/machine-model/predict`
+- **Purpose**: Predict whether one machine sensor reading is anomalous.
+- **Auth**: None
+- **Body**:
+  ```json
+  {
+    "voltage": 221.5,
+    "current": 6.2,
+    "temperature": 38.4
+  }
+  ```
+
+### POST `/api/public/machine-model/predict/batch`
+- **Purpose**: Predict anomaly status for multiple machine sensor readings.
+- **Auth**: None
+- **Body**:
+  ```json
+  {
+    "readings": [
+      { "voltage": 221.5, "current": 6.2, "temperature": 38.4 }
+    ]
+  }
+  ```
+
+### Admin Model Routes (`/api/admin/machine-model`)
+- `GET /health` - Check FastAPI model service health.
+- `GET /info` - Get loaded model path, features, threshold, and state.
+- `POST /train` - Retrain the model. Requires `SUPER_ADMIN` or `ADMIN`.
+- `POST /reload` - Reload the saved model. Requires `SUPER_ADMIN`, `ADMIN`, or `TECHNICIAN`.
+- `POST /reset-state` - Reset consecutive anomaly state. Requires `SUPER_ADMIN`, `ADMIN`, or `TECHNICIAN`.
+
+---
+
+## 6. Security Camera Model API
+
+The SaaS backend proxies these requests to the FastAPI service in `security_detection`.
+
+Set the security service URL in the Node backend environment:
+
+```env
+SECURITY_MODEL_API_URL=http://localhost:8001
+SECURITY_MODEL_TIMEOUT_MS=120000
+SECURITY_FRAME_UPLOAD_LIMIT=8mb
+```
+
+### POST `/api/public/security-model/analyze`
+- **Purpose**: Analyze a vending machine camera frame for threats.
+- **Auth**: None
+- **Body**: `multipart/form-data`
+  - `file`: jpg/png frame
+  - `machine_id`: optional machine ID
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "data": {
+      "timestamp": 1234567.89,
+      "machine_id": "VM-001",
+      "people_detected": 1,
+      "boxes": [[10, 20, 120, 240, 0.91]],
+      "scene": "1. People count: 1 ...",
+      "threat": {
+        "category": "PHYSICAL_ATTACK",
+        "threat_level": "high",
+        "detected_activity": "Kicking machine panel",
+        "confidence": 94,
+        "reason": "Repeated kicking = active physical attack"
+      }
+    }
+  }
+  ```
+
+### Admin Security Routes (`/api/admin/security-model`)
+- `GET /health` - Check FastAPI security service health and API key configuration.
+- `GET /latest` - Get the latest analyzed security frame result.
+
+---
+
 ## Common Response Formats
 
 **Success Response**:

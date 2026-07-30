@@ -1,0 +1,13 @@
+ultralytics
+opencv-python
+python-dotenv
+requests
+langchain-groq
+langchain-core
+pydantic
+fastapi
+uvicorn[standard]
+python-multipart
+numpy
+Pillow
+

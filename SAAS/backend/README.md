@@ -20,6 +20,8 @@ Managing a fleet of vending machines is difficult. Without this software, owners
 - **Order Processing & Payments**: Create orders and handle Razorpay payment webhooks.
 - **Device Management**: Track machine locations, status (Active, Maintenance), and last seen timestamps.
 - **Analytics**: Dashboards for revenue, top-selling products, and payment methods.
+- **Machine Anomaly Detection**: Proxies machine sensor readings to the FastAPI model service in `anomaly_detection`.
+- **Security Camera Anomaly Detection**: Proxies vending camera frames to the FastAPI service in `security_detection`.
 
 ---
 
@@ -42,7 +44,42 @@ The backend is built with Node.js and Express, connected to a MongoDB database.
 - **`helmet`**: Automatically sets secure HTTP headers to protect the API from common web vulnerabilities.
 - **`compression`**: Compresses API responses (like GZIP) to make them smaller, improving frontend load times.
 - **`morgan`, `pino`, `pino-http`, `pino-pretty`**: Logging libraries used to print beautifully formatted API request logs in the terminal, helping with debugging.
-- **`mqtt` & `@influxdata/influxdb-client` & `socket.io`**: (Phase 3/IoT integrations) Used for real-time bidirectional communication with the physical vending machines and storing time-series telemetry data.
+- **`@influxdata/influxdb-client` & `socket.io`**: (Phase 3/IoT integrations) Used for real-time machine communication and time-series telemetry work.
+
+## Machine Model Service
+
+Run the FastAPI model service from the repository root:
+
+```bash
+python -m uvicorn anomaly_detection.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Then start the Node backend with:
+
+```env
+ML_MODEL_API_URL=http://localhost:8000
+ML_MODEL_TIMEOUT_MS=5000
+```
+
+The Node backend exposes public prediction routes at `/api/public/machine-model/*` and admin model-management routes at `/api/admin/machine-model/*`.
+
+## Security Camera Model Service
+
+Run the FastAPI security service from the repository root:
+
+```bash
+python -m uvicorn security_detection.main:app --reload --host 0.0.0.0 --port 8001
+```
+
+Then start the Node backend with:
+
+```env
+SECURITY_MODEL_API_URL=http://localhost:8001
+SECURITY_MODEL_TIMEOUT_MS=120000
+SECURITY_FRAME_UPLOAD_LIMIT=8mb
+```
+
+The Node backend exposes public frame analysis at `/api/public/security-model/analyze` and admin security routes at `/api/admin/security-model/*`.
 
 *Should frontend developers care about these?*
 You mainly need to care about `cors` (if you get CORS errors, tell the backend dev to whitelist your URL), `jsonwebtoken` & `cookie-parser` (to understand how to send tokens in headers/cookies), and `zod` (if you send a wrong payload, Zod will throw a validation error you need to catch and display).

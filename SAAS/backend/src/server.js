@@ -18,6 +18,11 @@ const envSchema = z.object({
 
   // ── Frontend origin for CORS ─────────────────────────────────────────────
   FRONTEND_URL: z.string().default("http://localhost:5173"),
+  ML_MODEL_API_URL: z.string().url().default("http://localhost:8000"),
+  ML_MODEL_TIMEOUT_MS: z.string().regex(/^\d+$/).default("5000"),
+  SECURITY_MODEL_API_URL: z.string().url().default("http://localhost:8001"),
+  SECURITY_MODEL_TIMEOUT_MS: z.string().regex(/^\d+$/).default("120000"),
+  SECURITY_FRAME_UPLOAD_LIMIT: z.string().default("8mb"),
 
   // ── Phase 4: Razorpay ────────────────────────────────────────────────────
   // Optional in dev (server boots without them) — required in production

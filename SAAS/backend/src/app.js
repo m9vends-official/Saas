@@ -13,11 +13,14 @@ import adminCatalogRoutes from "./api/admin/routes/adminCatalogRoutes.js";
 import productRoutes      from "./api/admin/routes/productRoutes.js";
 import adminOrderRoutes from "./api/admin/routes/orderRoutes.js";
 import analyticsRoutes from "./api/admin/routes/analyticsRoutes.js";
-// telemetryRoutes → Phase 3 (MQTT/IoT) — will be added by the IoT team
+import adminMachineModelRoutes from "./api/admin/routes/machineModelRoutes.js";
+import adminSecurityModelRoutes from "./api/admin/routes/securityModelRoutes.js";
 
 // PUBLIC routes (no JWT required)
 import catalogRoutes from "./api/public/routes/catalogRoutes.js";
 import orderRoutes      from "./api/public/routes/orderRoutes.js";
+import machineModelRoutes from "./api/public/routes/machineModelRoutes.js";
+import securityModelRoutes from "./api/public/routes/securityModelRoutes.js";
 
 
 //  Error Middleware 
@@ -85,6 +88,8 @@ app.get("/health", (req, res) => {
 //  PUBLIC Routes (NO JWT) 
 // Customer-facing APIs — anyone with a machine_id can call these
 app.use("/api/public/catalog", catalogRoutes);
+app.use("/api/public/machine-model", machineModelRoutes);
+app.use("/api/public/security-model", securityModelRoutes);
 
 // ADMIN Routes (JWT REQUIRED) 
 // Auth routes — login/register/refresh are PUBLIC, logout is protected per-route
@@ -106,6 +111,8 @@ app.use("/api/public/payment", orderRoutes);
 
 // Analytics routes - GET 
 app.use("/api/admin/analytics",analyticsRoutes);
+app.use("/api/admin/machine-model", adminMachineModelRoutes);
+app.use("/api/admin/security-model", adminSecurityModelRoutes);
 
 // 404 Handler 
 // Catches any request that didn't match a route above
