@@ -7,12 +7,15 @@ from pydantic import BaseModel, Field
 try:
     from . import model as training
     from .inference import AnomalyDetector
+    from .mqtt_bridge import MqttAnomalyBridge
 except ImportError:  # Allows `uvicorn main:app` from inside anomaly_detection.
     import model as training
     from inference import AnomalyDetector
+    from mqtt_bridge import MqttAnomalyBridge
 
 
 detector = AnomalyDetector()
+mqtt_bridge = MqttAnomalyBridge(detector)
 
 
 class SensorReading(BaseModel):
@@ -65,13 +68,22 @@ def _prediction_or_http_error(reading):
 
 @asynccontextmanager
 async def lifespan(app):
+    model_ready = False
     try:
         _ensure_model_file()
         detector.load()
         app.state.model_startup_error = None
+        model_ready = True
     except Exception as error:
         app.state.model_startup_error = str(error)
-    yield
+
+    if model_ready:
+        mqtt_bridge.start()
+
+    try:
+        yield
+    finally:
+        mqtt_bridge.stop()
 
 
 app = FastAPI(
@@ -98,6 +110,7 @@ def health():
         "model_loaded": detector.loaded,
         "model_exists": os.path.exists(training.MODEL_PATH),
         "startup_error": getattr(app.state, "model_startup_error", None),
+        "mqtt": mqtt_bridge.status(),
     }
 
 
@@ -109,11 +122,20 @@ def model_info():
     }
 
 
+@app.get("/mqtt/status")
+def mqtt_status():
+    return {
+        "success": True,
+        "data": mqtt_bridge.status(),
+    }
+
+
 @app.post("/model/train")
 def train_model():
     try:
         metrics = training.train()
         detector.load()
+        mqtt_bridge.start()
     except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -131,6 +153,7 @@ def train_model():
 def reload_model():
     try:
         detector.load()
+        mqtt_bridge.start()
     except FileNotFoundError as error:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
