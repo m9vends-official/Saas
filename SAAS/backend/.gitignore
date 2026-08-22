@@ -1,2 +1,7 @@
 node_modules
 .env
+
+# ── Dev-only scripts (never deploy to production) ─────────────────────────────
+# These are local dev tools only. Running seedE2E in production would wipe the DB.
+src/scripts/
+simulate_machine.js

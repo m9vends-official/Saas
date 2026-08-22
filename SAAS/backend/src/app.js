@@ -11,9 +11,11 @@ import authRoutes         from "./api/admin/routes/authRoutes.js";
 import userRoutes         from "./api/admin/routes/userRoutes.js";
 import adminCatalogRoutes from "./api/admin/routes/adminCatalogRoutes.js";
 import productRoutes      from "./api/admin/routes/productRoutes.js";
-import adminOrderRoutes from "./api/admin/routes/orderRoutes.js";
-import analyticsRoutes from "./api/admin/routes/analyticsRoutes.js";
-// telemetryRoutes → Phase 3 (MQTT/IoT) — will be added by the IoT team
+import adminOrderRoutes   from "./api/admin/routes/orderRoutes.js";
+import analyticsRoutes    from "./api/admin/routes/analyticsRoutes.js";
+import machineRoutes      from "./api/admin/routes/machineRoutes.js";
+import assignmentRoutes   from "./api/admin/routes/assignmentRoutes.js";
+// telemetryRoutes → now handled by mqttService.js + Socket.IO
 
 // PUBLIC routes (no JWT required)
 import catalogRoutes from "./api/public/routes/catalogRoutes.js";
@@ -29,30 +31,20 @@ const app = express();
 
 // Global Middleware 
 
-app.use((req, res, next)=>{
-  if(req.originalUrl==="/api/public/payment/webhook"){
-    let data = "";
-    req.on("data",chunk => {
-      data += chunk;
-    })
-    req.on("end",()=>{
-      req.rawBody = data;
-      req.body = JSON.parse(data);
-      next();
-    });
-  }else{
-    next();
+// Parse incoming JSON request bodies safely, capturing rawBody for webhooks
+app.use(express.json({
+  verify: (req, res, buf) => {
+    if (req.originalUrl === "/api/public/payment/webhook") {
+      req.rawBody = buf.toString();
+    }
   }
-})
-
-// Parse incoming JSON request bodies
-app.use(express.json());
+}));
 
 // Enable CORS — allow frontend with credentials (cookies for refresh token)
 app.use(cors({
   origin: [
-    "http://localhost:5173",   // Vite dev server (admin dashboard)
     "http://localhost:5174",   // Vite dev server (kiosk, if running both)
+    "http://localhost:3000",   // Next.js admin panel dev server
     process.env.FRONTEND_URL,  // Production URL from .env
   ].filter(Boolean),
   credentials: true,           // Required for httpOnly cookie refresh token
@@ -87,6 +79,7 @@ app.get("/health", (req, res) => {
 app.use("/api/public/catalog", catalogRoutes);
 
 // ADMIN Routes (JWT REQUIRED) 
+
 // Auth routes — login/register/refresh are PUBLIC, logout is protected per-route
 app.use("/api/admin/auth", authRoutes);
 
@@ -105,7 +98,13 @@ app.use("/api/public/order",   orderRoutes);
 app.use("/api/public/payment", orderRoutes); 
 
 // Analytics routes - GET 
-app.use("/api/admin/analytics",analyticsRoutes);
+app.use("/api/admin/analytics",   analyticsRoutes);
+
+// Machine proxy routes — fetches device data from IoT backend
+app.use("/api/admin/machines",    machineRoutes);
+
+// Assignment routes — links Technicians to specific machines
+app.use("/api/admin/assignments", assignmentRoutes);
 
 // 404 Handler 
 // Catches any request that didn't match a route above

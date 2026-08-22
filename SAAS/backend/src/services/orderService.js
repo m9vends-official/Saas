@@ -5,6 +5,40 @@ import ApiError from '../utils/ApiError.js'
 import logger from '../utils/logger.js'
 import {createRazorpayOrder} from './paymentService.js'
 
+// ─── Shared helper: decrement stock for every item in a paid order ────────────
+// Called after BOTH UPI (webhook) and CASH (admin confirm) payment confirmation.
+// Uses bulkWrite for a single round-trip. The stock >= quantity guard prevents
+// going below 0 if something was restocked/adjusted between order placement and payment.
+const decrementStock = async (order) => {
+    if (!order?.items?.length) return;
+
+    const ops = order.items.map(item => ({
+        updateOne: {
+            filter: {
+                _id:     item.catalog_id,
+                stock:   { $gte: item.quantity }, // safety: only decrement if stock is sufficient
+            },
+            update: { $inc: { stock: -item.quantity } },
+        },
+    }));
+
+    const result = await MachineCatalog.bulkWrite(ops, { ordered: false });
+
+    // Warn if any item couldn't be decremented (e.g. already at 0 — edge case)
+    const missed = ops.length - result.modifiedCount;
+    if (missed > 0) {
+        logger.warn(
+            { order_id: order._id, missed_items: missed },
+            'Stock decrement: some catalog entries could not be decremented — stock may already be 0'
+        );
+    }
+
+    logger.info(
+        { order_id: order._id, items_decremented: result.modifiedCount },
+        'Stock decremented after payment'
+    );
+};
+
 
 export const placeOrder = async ({machine_id, items, payment_method = 'UPI'}) => {
 
@@ -122,37 +156,32 @@ export const getOrderStatus = async (orderId) => {
     return order;
 }
 
-// ─── Handle Webhook — Mark Order as PAID 
+// ─── Handle Webhook — Mark Order as PAID (UPI)
 // Called internally from the webhook controller after signature is verified.
-export const markOrderPaid = async ({razorpay_order_id,razorpay_payment_id,}) => {
+export const markOrderPaid = async ({razorpay_order_id, razorpay_payment_id}) => {
     const order = await Order.findOneAndUpdate(
         {
             razorpay_order_id,
-            payment_status: "PENDING",
+            payment_status: 'PENDING',
         },
         {
-            payment_status: "PAID",
-            order_status: "DISPENSING",
+            payment_status:      'PAID',
+            order_status:        'DISPENSING',
             razorpay_payment_id,
-            paid_at: new Date(),
+            paid_at:             new Date(),
         },
-        {
-            new: true,
-        }
+        { new: true }
     );
 
     if (!order) {
-        logger.warn({ razorpay_order_id },"Webhook received for unknown or already-processed order");
+        logger.warn({ razorpay_order_id }, 'Webhook received for unknown or already-processed order');
         return null;
     }
 
-    logger.info(
-        {
-            order_id: order._id,
-            razorpay_order_id,
-        },
-        "Order marked as paid"
-    );
+    logger.info({ order_id: order._id, razorpay_order_id }, 'UPI order marked as paid');
+
+    // ✅ Decrement stock for every item in this order
+    await decrementStock(order);
 
     return order;
 };
@@ -176,29 +205,33 @@ export const getCompanyOrders = async ({company_id, machine_id, status, page=1, 
 // Called by admin when customer physically pays cash at the machine.
 // No Razorpay involved — admin manually confirms the payment.
 
-export const confirmCashPayment = async ({company_id,orderId,collected_by}) => {
-
+export const confirmCashPayment = async ({company_id, orderId, collected_by}) => {
     const order = await Order.findOneAndUpdate(
         {
-            _id: orderId,
+            _id:            orderId,
             company_id,
-            payment_status: "PENDING",
+            payment_status: 'PENDING',
         },
         {
-            payment_status: "PAID",
-            order_status: "DISPENSING",
-            payment_method: "CASH",
-            paid_at: new Date(),
+            payment_status: 'PAID',
+            order_status:   'DISPENSING',
+            payment_method: 'CASH',
+            paid_at:        new Date(),
         },
-        {new: true}
-    )
+        { new: true }
+    );
 
-    if(!order){
-        throw ApiError.notFound("Order not found, alread paid, or does not belong to your company");
+    if (!order) {
+        throw ApiError.notFound('Order not found, already paid, or does not belong to your company');
     }
-    logger.info({
-        order_id: order._id, machine_id: order.machine_id, collected_by
-    },"Cash payment confirmed by admin")
+
+    logger.info(
+        { order_id: order._id, machine_id: order.machine_id, collected_by },
+        'Cash payment confirmed by admin'
+    );
+
+    // ✅ Decrement stock for every item in this order
+    await decrementStock(order);
 
     return order;
 }

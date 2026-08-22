@@ -33,24 +33,37 @@ export const addProductToMachine = async ({ company_id, machine_id, product_id, 
 }
 
 export const updateCatalogEntry = async (company_id, catalogId, updates) => {
-    
-    const entry = await MachineCatalog.findOneAndUpdate(
-        {
-            _id: catalogId,
-            company_id,
-        },
-        updates,
-        {
-            new: true,
-            runValidators: true
-        }
-    )
 
-    if(!entry){
-        throw ApiError.notFound("Catalog entry not found");
+    // Whitelist: only these fields can be changed via the update endpoint.
+    // Prevents accidental or malicious reassignment of company_id, machine_id, product_id.
+    const allowed = {};
+    if (updates.stock          !== undefined) allowed.stock          = updates.stock;
+    if (updates.is_enabled     !== undefined) allowed.is_enabled     = updates.is_enabled;
+    if (updates.price_override !== undefined) allowed.price_override = updates.price_override;
+    if (updates.slot_label     !== undefined) allowed.slot_label     = updates.slot_label;
+    if (updates.max_capacity   !== undefined) allowed.max_capacity   = updates.max_capacity;
+
+    // Auto-set last_restocked_at whenever stock is explicitly updated
+    if (updates.stock !== undefined) {
+        allowed.last_restocked_at = new Date();
+    }
+
+    if (Object.keys(allowed).length === 0) {
+        throw ApiError.badRequest('No valid fields provided for update');
+    }
+
+    const entry = await MachineCatalog.findOneAndUpdate(
+        { _id: catalogId, company_id },
+        allowed,
+        { new: true, runValidators: true }
+    );
+
+    if (!entry) {
+        throw ApiError.notFound('Catalog entry not found');
     }
     return entry;
 }
+
 
 export const removeCatalogEntry = async (company_id,catalogId) => {
     
@@ -70,7 +83,7 @@ export const removeCatalogEntry = async (company_id,catalogId) => {
 
 export const getMachineCatalog = async (company_id, machine_id) => {
     const normalizedMachineId = machine_id;
-    return MachineCatalog.find({ company_id, machine_id: normalizedMachineId })
+    const query = { company_id }; if (machine_id) query.machine_id = machine_id; return MachineCatalog.find(query)
        .populate("product_id", "product_name price image_url")
        .sort({ slot_label: 1 });
 }
