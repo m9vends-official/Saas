@@ -53,7 +53,8 @@ const io = new Server(httpServer, {
       "http://localhost:5173",
       "http://localhost:5174",
       "http://localhost:3000",  // Next.js admin panel dev server
-      process.env.FRONTEND_URL,
+      process.env.FRONTEND_URL, // Production URL from .env (Admin Panel)
+      process.env.KIOSK_URL,    // Production URL for User Kiosk
     ].filter(Boolean),
     credentials: true,
   },

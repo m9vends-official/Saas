@@ -45,7 +45,8 @@ app.use(cors({
   origin: [
     "http://localhost:5174",   // Vite dev server (kiosk, if running both)
     "http://localhost:3000",   // Next.js admin panel dev server
-    process.env.FRONTEND_URL,  // Production URL from .env
+    process.env.FRONTEND_URL,  // Production URL from .env (Admin Panel)
+    process.env.KIOSK_URL,     // Production URL for User Kiosk
   ].filter(Boolean),
   credentials: true,           // Required for httpOnly cookie refresh token
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
