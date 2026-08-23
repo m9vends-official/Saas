@@ -68,13 +68,23 @@ export const getMachines = async (user) => {
 // ─── getMachine ──────────────────────────────────────────────────────────────
 // GET /api/admin/machines/:machine_id
 // Returns a single device's full detail including components[].
+// NOTE: The IoT backend's GET /api/device/getDevice/:id is broken — it expects
+// an ownerID, not a deviceID. Workaround: call getDevices/:ownerID and filter.
 export const getMachine = async (machine_id, user) => {
   try {
     const iotClient = getIotClient();
     await assertMachineAccess(machine_id, user);
-    // GET /api/device/getDevice/:deviceVID
-    const response = await iotClient.get(`/api/device/getDevice/${machine_id}`);
-    return enrichWithTelemetry(response.data);
+
+    // Fetch all machines for this owner, then find the specific one by _id
+    const response = await iotClient.get(`/api/device/getDevices/${user.user_id}`);
+    const machines = response.data.device || [];
+    const machine = machines.find((m) => m._id === machine_id);
+
+    if (!machine) {
+      throw ApiError.notFound(`Machine ${machine_id} not found`);
+    }
+
+    return enrichWithTelemetry(machine);
   } catch (err) {
     handleIotError(err, `Failed to fetch machine ${machine_id} from IoT backend`);
   }
