@@ -5,7 +5,7 @@ export const generateAccessToken = (payload) => {
         payload,
         process.env.JWT_ACCESS_SECRET,
         {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1d"
         }
     )
 }
@@ -15,7 +15,7 @@ export const generateRefreshToken = (payload) => {
         payload,
         process.env.JWT_REFRESH_SECRET,
         {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "7d"
         }
     )
 }

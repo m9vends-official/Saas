@@ -14,6 +14,7 @@ const envSchema = z.object({
   ACCESS_TOKEN_EXPIRY:  z.string().default("1d"),
   REFRESH_TOKEN_EXPIRY: z.string().default("7d"),
   FRONTEND_URL: z.string().default("http://localhost:5173"),
+  KIOSK_URL:    z.string().default("http://localhost:5174"),
   RAZORPAY_KEY_ID:     z.string().default(""),
   RAZORPAY_KEY_SECRET: z.string().default(""),
 
