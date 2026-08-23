@@ -1,5 +1,5 @@
 import express from "express";
-import { register, login, refresh, logout } from "../controllers/authController.js";
+import { register, login, refresh, logout, me } from "../controllers/authController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 import { validateRegister, validateLogin } from "../validators/authValidator.js";
 import rateLimit from "express-rate-limit";
@@ -30,5 +30,8 @@ router.post("/refresh", refresh);
 
 // POST /api/admin/auth/logout  (protected — valid access token required)
 router.post("/logout", authMiddleware, logout);
+
+// GET /api/admin/auth/me  (returns logged-in user's company name)
+router.get("/me", authMiddleware, me);
 
 export default router;

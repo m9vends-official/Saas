@@ -1,4 +1,5 @@
 import { loginUser, registerUser, refreshTokenService, logoutUser } from "../../../services/authService.js";
+import Company from "../../../models/Company.js";
 
 // ─── POST /api/admin/auth/register ────────────────────────────────────────────
 export const register = async (req, res, next) => {
@@ -91,6 +92,26 @@ export const logout = async (req, res, next) => {
     res.json({
       success: true,
       message: "Logged out successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── GET /api/admin/auth/me ───────────────────────────────────────────────────
+// Returns the current user's company name (for display in the header)
+export const me = async (req, res, next) => {
+  try {
+    const company = await Company.findById(req.user.company_id).select('company_name plan').lean();
+    res.json({
+      success: true,
+      data: {
+        user_id:      req.user.user_id,
+        company_id:   req.user.company_id,
+        company_name: company?.company_name || 'My Company',
+        plan:         company?.plan || 'FREE',
+        role:         req.user.role,
+      },
     });
   } catch (error) {
     next(error);
