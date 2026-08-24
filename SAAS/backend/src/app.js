@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
@@ -15,7 +15,8 @@ import adminOrderRoutes   from "./api/admin/routes/orderRoutes.js";
 import analyticsRoutes    from "./api/admin/routes/analyticsRoutes.js";
 import machineRoutes      from "./api/admin/routes/machineRoutes.js";
 import assignmentRoutes   from "./api/admin/routes/assignmentRoutes.js";
-// telemetryRoutes → now handled by mqttService.js + Socket.IO
+import companyRoutes       from "./api/admin/routes/companyRoutes.js";
+// telemetryRoutes â†’ now handled by mqttService.js + Socket.IO
 
 // PUBLIC routes (no JWT required)
 import catalogRoutes from "./api/public/routes/catalogRoutes.js";
@@ -23,7 +24,7 @@ import orderRoutes      from "./api/public/routes/orderRoutes.js";
 
 
 //  Error Middleware 
-// Must be imported and used LAST — after all routes
+// Must be imported and used LAST â€” after all routes
 import errorMiddleware from "./api/admin/middlewares/errorMiddleware.js";
 
 // Initialize the Express application
@@ -40,7 +41,7 @@ app.use(express.json({
   }
 }));
 
-// Enable CORS — allow frontend with credentials (cookies for refresh token)
+// Enable CORS â€” allow frontend with credentials (cookies for refresh token)
 app.use(cors({
   origin: [
     "http://localhost:5174",   // Vite dev server (kiosk, if running both)
@@ -56,7 +57,7 @@ app.use(cors({
 // Set secure HTTP response headers (XSS, clickjacking, MIME sniffing, etc.)
 app.use(helmet());
 
-// Gzip compress responses — reduces payload size for faster transfers
+// Gzip compress responses â€” reduces payload size for faster transfers
 app.use(compression());
 
 // Parse cookies from incoming requests (needed for httpOnly refresh token)
@@ -76,24 +77,24 @@ app.get("/health", (req, res) => {
 });
 
 //  PUBLIC Routes (NO JWT) 
-// Customer-facing APIs — anyone with a machine_id can call these
+// Customer-facing APIs â€” anyone with a machine_id can call these
 app.use("/api/public/catalog", catalogRoutes);
 
 // ADMIN Routes (JWT REQUIRED) 
 
-// Auth routes — login/register/refresh are PUBLIC, logout is protected per-route
+// Auth routes â€” login/register/refresh are PUBLIC, logout is protected per-route
 app.use("/api/admin/auth", authRoutes);
 
-// User routes — ALL protected (authMiddleware + tenantMiddleware applied at router level)
+// User routes â€” ALL protected (authMiddleware + tenantMiddleware applied at router level)
 app.use("/api/admin/users", userRoutes);
 
 app.use("/api/admin/catalog",  adminCatalogRoutes);
 app.use("/api/admin/products", productRoutes);
 app.use("/api/admin/orders",   adminOrderRoutes); 
 
-// Public order routes — POST /order, GET /order/:id/status
+// Public order routes â€” POST /order, GET /order/:id/status
 app.use("/api/public/order",   orderRoutes);     
-// Webhook route — POST /api/public/payment/webhook
+// Webhook route â€” POST /api/public/payment/webhook
 
 // NOTE: webhook middleware in app.js captures raw body for /api/public/payment/webhook
 app.use("/api/public/payment", orderRoutes); 
@@ -101,10 +102,13 @@ app.use("/api/public/payment", orderRoutes);
 // Analytics routes - GET 
 app.use("/api/admin/analytics",   analyticsRoutes);
 
-// Machine proxy routes — fetches device data from IoT backend
+// Machine proxy routes â€” fetches device data from IoT backend
 app.use("/api/admin/machines",    machineRoutes);
 
-// Assignment routes — links Technicians to specific machines
+// Company management routes (SUPER_ADMIN only)
+app.use("/api/admin/companies",   companyRoutes);
+
+// Assignment routes â€” links Technicians to specific machines
 app.use("/api/admin/assignments", assignmentRoutes);
 
 // 404 Handler 
@@ -117,7 +121,7 @@ app.use((req, res) => {
 });
 
 // Global Error Middleware 
-// MUST be last — catches errors passed via next(error) from any controller
+// MUST be last â€” catches errors passed via next(error) from any controller
 app.use(errorMiddleware);
 
 export default app;

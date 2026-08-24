@@ -1,9 +1,9 @@
-import axios from "axios";
+﻿import axios from "axios";
 import MachineAssignment from "../models/MachineAssignment.js";
 import ApiError from "../utils/ApiError.js";
 import { telemetryCache } from "./mqttService.js";
 
-// ─── IoT REST Client ──────────────────────────────────────────────────────────
+// â”€â”€â”€ IoT REST Client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // All calls to the IoT backend are made from here (server-side only).
 // Do not create this client at module-load time. With ES modules, dependency
 // imports are evaluated before server.js gets to call dotenv.config(), which
@@ -24,7 +24,7 @@ const getIotClient = () => {
   return axios.create({ baseURL, timeout: 8000 });
 };
 
-// ─── getMachines ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ getMachines â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/machines
 // Fetches all devices owned by the given userId from the IoT backend.
 // SUPER_ADMIN and ADMIN: userId = company owner's ID stored in JWT company_id.
@@ -54,9 +54,30 @@ export const getMachines = async (user) => {
         .map((r) => enrichWithTelemetry(r.value));
     }
 
-    // SUPER_ADMIN / ADMIN: fetch all machines for this company
-    // GET /api/device/getDevices/:ownerID
-    const response = await iotClient.get(`/api/device/getDevices/${user.user_id}`);
+    if (user.role === "SUPER_ADMIN") {
+      // SUPER_ADMIN: fetch devices from ALL users across ALL companies
+      // Use the new IoT API: GET /api/device/user/:userID per each company user
+      // We get all ADMIN users from the DB, then fetch their devices in parallel
+      const User = (await import("../models/User.js")).default;
+      const allAdmins = await User.find({ role: { $in: ["ADMIN", "SUPER_ADMIN"] } }).select("_id").lean();
+      const allResults = await Promise.allSettled(
+        allAdmins.map((u) =>
+          iotClient.get(`/api/device/user/${u._id}`).then((r) => r.data.device || [])
+        )
+      );
+      // Flatten all device arrays from all users
+      const allDevices = allResults
+        .filter((r) => r.status === "fulfilled")
+        .flatMap((r) => (Array.isArray(r.value) ? r.value : []));
+      // Deduplicate by _id
+      const seen = new Set();
+      const unique = allDevices.filter((d) => { const id = d._id; if (seen.has(id)) return false; seen.add(id); return true; });
+      return unique.map(enrichWithTelemetry);
+    }
+
+    // ADMIN: fetch all machines for this company owner
+    // GET /api/device/user/:userID
+    const response = await iotClient.get(`/api/device/user/${user.user_id}`);
     // The IoT backend returns { device: [...], message: "..." }
     const machines = response.data.device || [];
     return machines.map(enrichWithTelemetry);
@@ -65,10 +86,10 @@ export const getMachines = async (user) => {
   }
 };
 
-// ─── getMachine ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ getMachine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/machines/:machine_id
 // Returns a single device's full detail including components[].
-// NOTE: The IoT backend's GET /api/device/getDevice/:id is broken — it expects
+// NOTE: The IoT backend's GET /api/device/getDevice/:id is broken â€” it expects
 // an ownerID, not a deviceID. Workaround: call getDevices/:ownerID and filter.
 export const getMachine = async (machine_id, user) => {
   try {
@@ -90,14 +111,14 @@ export const getMachine = async (machine_id, user) => {
   }
 };
 
-// ─── provisionMachine ────────────────────────────────────────────────────────
+// â”€â”€â”€ provisionMachine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // POST /api/admin/machines/provision
 // Calls the IoT backend to register and provision a machine under this company.
 export const provisionMachine = async ({ serialNumber }, user) => {
   try {
     const iotClient = getIotClient();
     // POST /api/device/provision  { serialNumber, userID }
-    // IoT backend links device → userID (the company owner's ID)
+    // IoT backend links device â†’ userID (the company owner's ID)
     const response = await iotClient.post(`/api/device/provision`, {
       serialNumber,
       userID: user.user_id,
@@ -108,7 +129,7 @@ export const provisionMachine = async ({ serialNumber }, user) => {
   }
 };
 
-// ─── sendCommand ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ sendCommand â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // POST /api/admin/machines/:machine_id/commands
 // Publishes a command to the machine via IoT backend REST endpoint.
 // TECHNICIAN is blocked by route-level RBAC.
@@ -126,7 +147,7 @@ export const sendCommand = async (machine_id, { message }, user) => {
   }
 };
 
-// ─── getTelemetry ────────────────────────────────────────────────────────────
+// â”€â”€â”€ getTelemetry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/machines/:machine_id/telemetry
 // Returns latest cached telemetry snapshot for the requested machine.
 export const getTelemetry = async (machine_id, user) => {
@@ -139,7 +160,7 @@ export const getTelemetry = async (machine_id, user) => {
   return cached;
 };
 
-// ─── getAssignments ──────────────────────────────────────────────────────────
+// â”€â”€â”€ getAssignments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/assignments
 export const getAssignments = async (company_id) => {
   return MachineAssignment.find({ company_id })
@@ -147,7 +168,7 @@ export const getAssignments = async (company_id) => {
     .lean();
 };
 
-// ─── assignMachine ───────────────────────────────────────────────────────────
+// â”€â”€â”€ assignMachine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // POST /api/admin/assignments
 export const assignMachine = async ({ machine_id, technician_id }, assignedBy) => {
   const existing = await MachineAssignment.findOne({
@@ -167,7 +188,7 @@ export const assignMachine = async ({ machine_id, technician_id }, assignedBy) =
   });
 };
 
-// ─── removeAssignment ────────────────────────────────────────────────────────
+// â”€â”€â”€ removeAssignment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // DELETE /api/admin/assignments/:id
 export const removeAssignment = async (assignmentId, company_id) => {
   const result = await MachineAssignment.findOneAndDelete({
@@ -181,7 +202,7 @@ export const removeAssignment = async (assignmentId, company_id) => {
   return result;
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // Merge IoT device data with latest cached telemetry (if any)
 const enrichWithTelemetry = (device) => {
@@ -224,3 +245,4 @@ const handleIotError = (err, fallback) => {
   // Network / timeout error
   throw ApiError.internal(`IoT backend unreachable: ${err.message}`);
 };
+
