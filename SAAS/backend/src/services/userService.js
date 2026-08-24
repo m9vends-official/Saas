@@ -1,10 +1,10 @@
-import User from "../models/User.js";
+﻿import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import logger from "../utils/logger.js";
 import ApiError from "../utils/ApiError.js";
 
 export const listCompanyUsers = async (company_id) => {
-    return User.find({company_id})
+    return User.find(company_id ? { company_id } : {})
        .select("-password_hash")
        .sort({createdAt: -1});
 }
