@@ -1,4 +1,4 @@
-import {
+﻿import {
   getMachines,
   getMachine,
   provisionMachine,
@@ -10,7 +10,7 @@ import {
 } from "../../../services/machineService.js";
 import ApiError from "../../../utils/ApiError.js";
 
-// ─── listMachines ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ listMachines â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/machines
 export const listMachines = async (req, res, next) => {
   try {
@@ -21,7 +21,7 @@ export const listMachines = async (req, res, next) => {
   }
 };
 
-// ─── getMachineDetail ─────────────────────────────────────────────────────────
+// â”€â”€â”€ getMachineDetail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/machines/:machine_id
 export const getMachineDetail = async (req, res, next) => {
   try {
@@ -32,7 +32,7 @@ export const getMachineDetail = async (req, res, next) => {
   }
 };
 
-// ─── provision ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ provision â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // POST /api/admin/machines/provision
 // Body: { serialNumber: string }
 export const provision = async (req, res, next) => {
@@ -48,7 +48,7 @@ export const provision = async (req, res, next) => {
   }
 };
 
-// ─── dispatchCommand ──────────────────────────────────────────────────────────
+// â”€â”€â”€ dispatchCommand â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // POST /api/admin/machines/:machine_id/commands
 // Body: { message: string }
 export const dispatchCommand = async (req, res, next) => {
@@ -64,7 +64,7 @@ export const dispatchCommand = async (req, res, next) => {
   }
 };
 
-// ─── getMachineTelemetry ──────────────────────────────────────────────────────
+// â”€â”€â”€ getMachineTelemetry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/machines/:machine_id/telemetry
 export const getMachineTelemetry = async (req, res, next) => {
   try {
@@ -75,18 +75,18 @@ export const getMachineTelemetry = async (req, res, next) => {
   }
 };
 
-// ─── listAssignments ──────────────────────────────────────────────────────────
+// â”€â”€â”€ listAssignments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/assignments
 export const listAssignments = async (req, res, next) => {
   try {
-    const assignments = await getAssignments(req.user.company_id);
+    const assignments = await getAssignments(req.company_id, req.query.machine_id);
     res.json({ success: true, data: assignments });
   } catch (err) {
     next(err);
   }
 };
 
-// ─── createAssignment ─────────────────────────────────────────────────────────
+// â”€â”€â”€ createAssignment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // POST /api/admin/assignments
 // Body: { machine_id: string, technician_id: string }
 export const createAssignment = async (req, res, next) => {
@@ -102,13 +102,14 @@ export const createAssignment = async (req, res, next) => {
   }
 };
 
-// ─── deleteAssignment ─────────────────────────────────────────────────────────
+// â”€â”€â”€ deleteAssignment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // DELETE /api/admin/assignments/:id
 export const deleteAssignment = async (req, res, next) => {
   try {
-    const deleted = await removeAssignment(req.params.id, req.user.company_id);
+    const deleted = await removeAssignment(req.params.id, req.company_id);
     res.json({ success: true, data: deleted });
   } catch (err) {
     next(err);
   }
 };
+

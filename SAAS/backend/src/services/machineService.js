@@ -1,5 +1,6 @@
 ﻿import axios from "axios";
 import MachineAssignment from "../models/MachineAssignment.js";
+import User from "../models/User.js";
 import ApiError from "../utils/ApiError.js";
 import { telemetryCache } from "./mqttService.js";
 
@@ -162,31 +163,31 @@ export const getTelemetry = async (machine_id, user) => {
 
 // â”€â”€â”€ getAssignments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/assignments
-export const getAssignments = async (company_id) => {
-  return MachineAssignment.find({ company_id })
-    .populate("technician_id", "name email role")
-    .lean();
-};
+export const getAssignments = async (company_id, machine_id) => {
+    const query = {};
+    if (company_id) query.company_id = company_id;
+    if (machine_id) query.machine_id = machine_id;
+    return MachineAssignment.find(query).populate("technician_id", "name email role").lean();
+  };
 
 // â”€â”€â”€ assignMachine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // POST /api/admin/assignments
 export const assignMachine = async ({ machine_id, technician_id }, assignedBy) => {
-  const existing = await MachineAssignment.findOne({
-    machine_id,
-    technician_id,
-  });
-
-  if (existing) {
-    throw ApiError.conflict("Technician is already assigned to this machine");
-  }
-
-  return MachineAssignment.create({
-    company_id:    assignedBy.company_id,
-    machine_id,
-    technician_id,
-    assigned_by:   assignedBy.user_id,
-  });
-};
+    const technician = await User.findById(technician_id);
+    if (!technician || technician.role !== "TECHNICIAN") {
+      throw ApiError.badRequest("User must be a valid TECHNICIAN");
+    }
+    const existing = await MachineAssignment.findOne({ machine_id, technician_id });
+    if (existing) {
+      throw ApiError.conflict("Technician is already assigned to this machine");
+    }
+    return MachineAssignment.create({
+      company_id: technician.company_id,
+      machine_id,
+      technician_id,
+      assigned_by: assignedBy.user_id,
+    });
+  };
 
 // â”€â”€â”€ removeAssignment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // DELETE /api/admin/assignments/:id
@@ -245,4 +246,5 @@ const handleIotError = (err, fallback) => {
   // Network / timeout error
   throw ApiError.internal(`IoT backend unreachable: ${err.message}`);
 };
+
 
