@@ -1,11 +1,11 @@
-import mongoose from 'mongoose';
+﻿import mongoose from 'mongoose';
 import MachineCatalog from '../models/MachineCatalog.js'
 import Order from '../models/Order.js'
 import ApiError from '../utils/ApiError.js'
 import logger from '../utils/logger.js'
 import {createRazorpayOrder} from './paymentService.js'
 
-// ─── Shared helper: decrement stock for every item in a paid order ────────────
+// â”€â”€â”€ Shared helper: decrement stock for every item in a paid order â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Called after BOTH UPI (webhook) and CASH (admin confirm) payment confirmation.
 // Uses bulkWrite for a single round-trip. The stock >= quantity guard prevents
 // going below 0 if something was restocked/adjusted between order placement and payment.
@@ -24,12 +24,12 @@ const decrementStock = async (order) => {
 
     const result = await MachineCatalog.bulkWrite(ops, { ordered: false });
 
-    // Warn if any item couldn't be decremented (e.g. already at 0 — edge case)
+    // Warn if any item couldn't be decremented (e.g. already at 0 â€” edge case)
     const missed = ops.length - result.modifiedCount;
     if (missed > 0) {
         logger.warn(
             { order_id: order._id, missed_items: missed },
-            'Stock decrement: some catalog entries could not be decremented — stock may already be 0'
+            'Stock decrement: some catalog entries could not be decremented â€” stock may already be 0'
         );
     }
 
@@ -50,7 +50,7 @@ export const placeOrder = async ({machine_id, items, payment_method = 'UPI'}) =>
     let company_id = null;
 
     for(const item of items){
-        // Guard: catalog_id must be a valid MongoDB ObjectId — fail fast with a clear 400
+        // Guard: catalog_id must be a valid MongoDB ObjectId â€” fail fast with a clear 400
         // instead of crashing with a CastError 500 when mock/invalid IDs are sent
         if (!mongoose.isValidObjectId(item.catalog_id)) {
             throw ApiError.badRequest(
@@ -107,7 +107,7 @@ export const placeOrder = async ({machine_id, items, payment_method = 'UPI'}) =>
         payment_method,
     });
 
-    // CASH: skip Razorpay — admin confirms manually in dashboard
+    // CASH: skip Razorpay â€” admin confirms manually in dashboard
     if (payment_method === 'CASH') {
         logger.info({ order_id: order._id, machine_id: normalizedMachineId, total_amount, payment_method }, 'Cash order placed');
         return {
@@ -146,8 +146,8 @@ export const placeOrder = async ({machine_id, items, payment_method = 'UPI'}) =>
     };
 };
 
-// ─── Get Order Status 
-// Machine screen polls this every 2–3 seconds to know if payment is done.
+// â”€â”€â”€ Get Order Status 
+// Machine screen polls this every 2â€“3 seconds to know if payment is done.
 export const getOrderStatus = async (orderId) => {
     const order = await Order.findById(orderId).select(
         "payment_status order_status total_amount machine_id paid_at"
@@ -156,7 +156,7 @@ export const getOrderStatus = async (orderId) => {
     return order;
 }
 
-// ─── Handle Webhook — Mark Order as PAID (UPI)
+// â”€â”€â”€ Handle Webhook â€” Mark Order as PAID (UPI)
 // Called internally from the webhook controller after signature is verified.
 export const markOrderPaid = async ({razorpay_order_id, razorpay_payment_id}) => {
     const order = await Order.findOneAndUpdate(
@@ -180,7 +180,7 @@ export const markOrderPaid = async ({razorpay_order_id, razorpay_payment_id}) =>
 
     logger.info({ order_id: order._id, razorpay_order_id }, 'UPI order marked as paid');
 
-    // ✅ Decrement stock for every item in this order
+    // âœ… Decrement stock for every item in this order
     await decrementStock(order);
 
     return order;
@@ -189,7 +189,8 @@ export const markOrderPaid = async ({razorpay_order_id, razorpay_payment_id}) =>
 // list orders (ADMIN)
 
 export const getCompanyOrders = async ({company_id, machine_id, status, page=1, limit=20}) => {
-    const filter = {company_id};
+    const filter = {};
+    if (company_id) filter.company_id = company_id;
     if(machine_id) filter.machine_id = machine_id;
     if(status) filter.payment_status = status;
 
@@ -203,7 +204,7 @@ export const getCompanyOrders = async ({company_id, machine_id, status, page=1, 
 
 // Confirm Cash Payment 
 // Called by admin when customer physically pays cash at the machine.
-// No Razorpay involved — admin manually confirms the payment.
+// No Razorpay involved â€” admin manually confirms the payment.
 
 export const confirmCashPayment = async ({company_id, orderId, collected_by}) => {
     const order = await Order.findOneAndUpdate(
@@ -230,13 +231,13 @@ export const confirmCashPayment = async ({company_id, orderId, collected_by}) =>
         'Cash payment confirmed by admin'
     );
 
-    // ✅ Decrement stock for every item in this order
+    // âœ… Decrement stock for every item in this order
     await decrementStock(order);
 
     return order;
 }
 
-// ─── Cancel Order (PUBLIC)
+// â”€â”€â”€ Cancel Order (PUBLIC)
 // Called by kiosk when UPI timer expires or customer cancels.
 // Only cancels orders that are still PENDING.
 export const cancelOrder = async (orderId) => {
@@ -247,7 +248,7 @@ export const cancelOrder = async (orderId) => {
     );
 
     if (!order) {
-        throw ApiError.badRequest('Order cannot be cancelled — not found or already processed');
+        throw ApiError.badRequest('Order cannot be cancelled â€” not found or already processed');
     }
 
     logger.info({ order_id: order._id }, 'Order cancelled by kiosk');

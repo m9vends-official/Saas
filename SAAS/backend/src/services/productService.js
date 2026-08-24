@@ -1,20 +1,20 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import Product from "../models/Product.js";
 import MachineCatalog from "../models/MachineCatalog.js";
 import ApiError from "../utils/ApiError.js";
 import logger from "../utils/logger.js";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const assertValidId = (id) => {
     if (!mongoose.Types.ObjectId.isValid(id)) {
         throw ApiError.badRequest("Invalid product id");
     }
 };
 
-// ─── Create Product ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Create Product â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const createProduct = async (company_id, productData) => {
 
-    // Change #1 — normalize SKU BEFORE the duplicate check so the schema
+    // Change #1 â€” normalize SKU BEFORE the duplicate check so the schema
     // uppercase transform and the query both see the same value
     if (productData.sku) {
         productData.sku = productData.sku.toUpperCase();
@@ -36,12 +36,12 @@ export const createProduct = async (company_id, productData) => {
     return product;
 };
 
-// ─── List Products (company-scoped, with filters + pagination) ────────────────
+// â”€â”€â”€ List Products (company-scoped, with filters + pagination) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Query params:
-//   ?search=cola          → partial match on product_name or SKU (case-insensitive)
-//   ?category=Beverages   → exact category match
-//   ?is_available=true    → filter by availability flag
-//   ?page=1&limit=20      → pagination (Change #4)
+//   ?search=cola          â†’ partial match on product_name or SKU (case-insensitive)
+//   ?category=Beverages   â†’ exact category match
+//   ?is_available=true    â†’ filter by availability flag
+//   ?page=1&limit=20      â†’ pagination (Change #4)
 export const getCompanyProducts = async (company_id, filters = {}) => {
     const {
         search,
@@ -51,8 +51,9 @@ export const getCompanyProducts = async (company_id, filters = {}) => {
         limit = 20,
     } = filters;
 
-    // Change #5 — always exclude soft-deleted products
-    const query = { company_id, is_deleted: false };
+    // Change #5 â€” always exclude soft-deleted products
+    const query = { is_deleted: false };
+    if (company_id) query.company_id = company_id;
 
     if (search) {
         const regex = new RegExp(search, "i");
@@ -74,7 +75,7 @@ export const getCompanyProducts = async (company_id, filters = {}) => {
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
     const skip     = (pageNum - 1) * limitNum;
 
-    // Change #3 — .lean() for read-only list: faster, lower memory
+    // Change #3 â€” .lean() for read-only list: faster, lower memory
     const [products, total] = await Promise.all([
         Product.find(query).sort({ createdAt: -1 }).skip(skip).limit(limitNum).lean(),
         Product.countDocuments(query),
@@ -91,12 +92,12 @@ export const getCompanyProducts = async (company_id, filters = {}) => {
     };
 };
 
-// ─── Get Single Product ───────────────────────────────────────────────────────
+// â”€â”€â”€ Get Single Product â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const getProductById = async (company_id, id) => {
-    // Change #2 — guard against CastError before hitting the DB
+    // Change #2 â€” guard against CastError before hitting the DB
     assertValidId(id);
 
-    // Change #3 — .lean() for read-only single fetch
+    // Change #3 â€” .lean() for read-only single fetch
     const product = await Product.findOne({ _id: id, company_id, is_deleted: false }).lean();
 
     if (!product) {
@@ -106,12 +107,12 @@ export const getProductById = async (company_id, id) => {
     return product;
 };
 
-// ─── Update Product ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Update Product â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const updateProduct = async (company_id, id, updates) => {
     // Change #2
     assertValidId(id);
 
-    // Change #1 — normalize SKU before duplicate check
+    // Change #1 â€” normalize SKU before duplicate check
     if (updates.sku) {
         updates.sku = updates.sku.toUpperCase();
 
@@ -141,14 +142,14 @@ export const updateProduct = async (company_id, id, updates) => {
     return product;
 };
 
-// ─── Delete Product (soft delete) ─────────────────────────────────────────────
-// Change #5 — soft delete instead of findOneAndDelete.
+// â”€â”€â”€ Delete Product (soft delete) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Change #5 â€” soft delete instead of findOneAndDelete.
 // MachineCatalog entries / historical sales still reference the product safely.
 export const deleteProduct = async (company_id, id) => {
     // Change #2
     assertValidId(id);
 
-    // M9Vends-specific — block deletion if product is assigned to any machine
+    // M9Vends-specific â€” block deletion if product is assigned to any machine
     const inUse = await MachineCatalog.exists({ company_id, product_id: id });
     if (inUse) {
         throw ApiError.conflict(
@@ -171,3 +172,4 @@ export const deleteProduct = async (company_id, id) => {
 
     return product;
 };
+

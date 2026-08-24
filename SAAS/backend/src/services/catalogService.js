@@ -1,4 +1,4 @@
-import MachineCatalog from "../models/MachineCatalog.js";
+﻿import MachineCatalog from "../models/MachineCatalog.js";
 import Product from "../models/Product.js";
 import ApiError from "../utils/ApiError.js";
 
@@ -6,7 +6,9 @@ export const addProductToMachine = async ({ company_id, machine_id, product_id, 
 
     const normalizedMachineId = machine_id;
 
-    const product = await Product.findOne({_id: product_id, company_id});
+    const productQuery = { _id: product_id };
+    if (company_id) productQuery.company_id = company_id;
+    const product = await Product.findOne(productQuery);
 
 
     if(!product){
@@ -83,7 +85,10 @@ export const removeCatalogEntry = async (company_id,catalogId) => {
 
 export const getMachineCatalog = async (company_id, machine_id) => {
     const normalizedMachineId = machine_id;
-    const query = { company_id }; if (machine_id) query.machine_id = machine_id; return MachineCatalog.find(query)
+    const query = {};
+    if (company_id) query.company_id = company_id; if (machine_id) query.machine_id = machine_id; return MachineCatalog.find(query)
        .populate("product_id", "product_name price image_url")
        .sort({ slot_label: 1 });
 }
+
+
