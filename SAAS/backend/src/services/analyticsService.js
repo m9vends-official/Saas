@@ -188,7 +188,7 @@ export const getRevenueByCompany = async ({ from_date, to_date }) => {
         as:           "company",
       },
     },
-    { $unwind: { path: "$company", preserveNullAndEmpty: true } },
+    { $unwind: { path: "$company", preserveNullAndEmptyArrays: true } },
     {
       $project: {
         _id: 0,
@@ -202,3 +202,4 @@ export const getRevenueByCompany = async ({ from_date, to_date }) => {
     { $sort: { total_revenue: -1 } },
   ]);
 };
+
