@@ -1,14 +1,14 @@
-import User from "../../../models/User.js";
+﻿import User from "../../../models/User.js";
 import ApiError from "../../../utils/ApiError.js";
 import logger from "../../../utils/logger.js";
 import * as userService from "../../../services/userService.js";
 
-// ─── GET /api/admin/users/me ──────────────────────────────────────────────────
+// â”€â”€â”€ GET /api/admin/users/me â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Returns the full profile of the currently authenticated user.
 // req.user is populated by authMiddleware from the verified JWT payload.
 export const getMe = async (req, res, next) => {
   try {
-    // Fetch fresh data from DB — do NOT rely solely on JWT payload
+    // Fetch fresh data from DB â€” do NOT rely solely on JWT payload
     // (the JWT payload could be stale if role/status changed after last login)
     const user = await User.findById(req.user.user_id).select(
       "-password_hash -refresh_token"
@@ -42,7 +42,7 @@ export const getMe = async (req, res, next) => {
   }
 };
 
-// ─── GET /api/admin/users 
+// â”€â”€â”€ GET /api/admin/users 
 export const listUsers = async (req, res, next) => {
   try {
     const users = await userService.listCompanyUsers(req.company_id);
@@ -55,12 +55,17 @@ export const listUsers = async (req, res, next) => {
   }
 }
 
-// ─── POST /api/admin/users/invite 
+// â”€â”€â”€ POST /api/admin/users/invite 
 export const inviteUser = async (req, res, next) => {
 
   try {
+    // SUPER_ADMIN has req.company_id = null, so allow them to pass company_id in body
+    const company_id = req.company_id || req.body.company_id;
+    if (!company_id) {
+      return next(ApiError.badRequest('company_id is required when creating users as Super Admin'));
+    }
     const user = await userService.inviteUser({
-      company_id: req.company_id,
+      company_id,
       ...req.body,
     })
     res.status(201).json({success: true,data: user});
@@ -69,7 +74,7 @@ export const inviteUser = async (req, res, next) => {
   }
 }
 
-// ─── PATCH /api/admin/users/:id/status 
+// â”€â”€â”€ PATCH /api/admin/users/:id/status 
 export const updateUserStatus = async (req, res, next) => {
 
   try {

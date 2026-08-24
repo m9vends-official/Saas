@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import { getMe, listUsers, inviteUser, updateUserStatus } from "../controllers/userController.js";
 import { authMiddleware }   from "../middlewares/authMiddleware.js";
 import { tenantMiddleware } from "../middlewares/tenantMiddleware.js";
@@ -12,11 +12,11 @@ const router = Router();
 router.use(authMiddleware);
 router.use(tenantMiddleware);
 
-// ─── Any authenticated user ───────────────────────────────────────────────────
+// â”€â”€â”€ Any authenticated user â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/users/me
 router.get("/me", getMe);
 
-// ─── SUPER_ADMIN only ─────────────────────────────────────────────────────────
+// â”€â”€â”€ SUPER_ADMIN only â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/users
 router.get(
   "/",
@@ -24,7 +24,14 @@ router.get(
   listUsers
 );
 
-// POST /api/admin/users/invite
+// POST /api/admin/users  (also accessible as /invite for backwards compat)
+router.post(
+  "/",
+  authorizeRoles("SUPER_ADMIN", "ADMIN"),
+  validate(inviteUserSchema),
+  inviteUser
+);
+
 router.post(
   "/invite",
   authorizeRoles("SUPER_ADMIN"),
@@ -41,3 +48,4 @@ router.patch(
 );
 
 export default router;
+
