@@ -188,10 +188,16 @@ export const markOrderPaid = async ({razorpay_order_id, razorpay_payment_id}) =>
 
 // list orders (ADMIN)
 
-export const getCompanyOrders = async ({company_id, machine_id, status, page=1, limit=20}) => {
+export const getCompanyOrders = async ({company_id, machine_id, status, page=1, limit=20, assigned_machine_ids}) => {
     const filter = {};
     if (company_id) filter.company_id = company_id;
     if(machine_id) filter.machine_id = machine_id;
+    if(assigned_machine_ids) {
+      if (filter.machine_id && !assigned_machine_ids.includes(filter.machine_id)) {
+        return { orders: [], total: 0, page, limit };
+      }
+      if (!filter.machine_id) filter.machine_id = { $in: assigned_machine_ids };
+    }
     if(status) filter.payment_status = status;
 
     const skip = (page-1)*limit;
@@ -254,3 +260,4 @@ export const cancelOrder = async (orderId) => {
     logger.info({ order_id: order._id }, 'Order cancelled by kiosk');
     return order;
 };
+
