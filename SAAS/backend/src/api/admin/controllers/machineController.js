@@ -37,11 +37,23 @@ export const getMachineDetail = async (req, res, next) => {
 // Body: { serialNumber: string }
 export const provision = async (req, res, next) => {
   try {
-    const { serialNumber } = req.body;
+    const { serialNumber, company_id } = req.body;
     if (!serialNumber) {
       return next(ApiError.badRequest("serialNumber is required"));
     }
-    const result = await provisionMachine({ serialNumber }, req.user);
+    
+    let provisionUser = req.user;
+    if (req.user.role === 'SUPER_ADMIN') {
+        if (!company_id) return next(ApiError.badRequest("company_id is required for super admin"));
+        // Find an admin for this company to act as the device owner in IoT backend
+        const { default: User } = await import('../../../models/User.js');
+        const companyAdmin = await User.findOne({ company_id, role: 'ADMIN' });
+        if (!companyAdmin) return next(ApiError.badRequest("No admin found for this company to own the device. Please create a user first."));
+        
+        provisionUser = { user_id: companyAdmin._id, role: 'ADMIN', company_id: companyAdmin.company_id };
+    }
+
+    const result = await provisionMachine({ serialNumber }, provisionUser);
     res.status(201).json({ success: true, data: result });
   } catch (err) {
     next(err);

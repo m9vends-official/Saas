@@ -40,6 +40,7 @@ import { Server }      from "socket.io";
 import jwt             from "jsonwebtoken";
 import app             from "./app.js";
 import { connectDB }   from "./config/db.js";
+import { setIo }       from "./services/socketService.js";
 import logger          from "./utils/logger.js";
 import { initMqttService } from "./services/mqttService.js";
 
@@ -104,6 +105,7 @@ io.on("connection", (socket) => {
 
 // Attach io to app so controllers can emit events (e.g., cash order confirmed)
 app.set("io", io);
+setIo(io);
 
 // ─── Server Startup ───────────────────────────────────────────────────────────
 async function startServer() {
@@ -136,3 +138,6 @@ process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT",  () => shutdown("SIGINT"));
 
 startServer();
+// Trigger nodemon restart
+
+// Trigger nodemon restart 2

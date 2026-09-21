@@ -1,4 +1,4 @@
-﻿import express from "express";
+import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
@@ -16,6 +16,7 @@ import analyticsRoutes    from "./api/admin/routes/analyticsRoutes.js";
 import machineRoutes      from "./api/admin/routes/machineRoutes.js";
 import assignmentRoutes   from "./api/admin/routes/assignmentRoutes.js";
 import companyRoutes       from "./api/admin/routes/companyRoutes.js";
+import adminCompanyRoutes  from "./api/admin/routes/adminCompanyRoutes.js";
 // telemetryRoutes â†’ now handled by mqttService.js + Socket.IO
 
 // PUBLIC routes (no JWT required)
@@ -35,7 +36,7 @@ const app = express();
 // Parse incoming JSON request bodies safely, capturing rawBody for webhooks
 app.use(express.json({
   verify: (req, res, buf) => {
-    if (req.originalUrl === "/api/public/payment/webhook") {
+    if (req.originalUrl.startsWith("/api/public/payment/webhook")) {
       req.rawBody = buf.toString();
     }
   }
@@ -107,6 +108,9 @@ app.use("/api/admin/machines",    machineRoutes);
 
 // Company management routes (SUPER_ADMIN only)
 app.use("/api/admin/companies",   companyRoutes);
+
+// Company settings routes (ADMIN manages their own company)
+app.use("/api/admin/company",     adminCompanyRoutes);
 
 // Assignment routes â€” links Technicians to specific machines
 app.use("/api/admin/assignments", assignmentRoutes);

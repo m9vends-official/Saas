@@ -13,6 +13,6 @@ router.post("/:id/cancel", cancelOrderHandler);
 router.get("/:id/status", checkOrderStatus);
 
 // POST /api/public/order/webhook <- Razorpay calls this
-router.post("/webhook", handleWebhook);
+router.post("/webhook/:company_id", handleWebhook);
 
 export default router;

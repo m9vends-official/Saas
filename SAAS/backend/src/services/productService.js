@@ -1,4 +1,4 @@
-﻿import mongoose from "mongoose";
+import mongoose from "mongoose";
 import Product from "../models/Product.js";
 import MachineCatalog from "../models/MachineCatalog.js";
 import ApiError from "../utils/ApiError.js";
@@ -98,7 +98,10 @@ export const getProductById = async (company_id, id) => {
     assertValidId(id);
 
     // Change #3 â€” .lean() for read-only single fetch
-    const product = await Product.findOne({ _id: id, company_id, is_deleted: false }).lean();
+    const query = { _id: id, is_deleted: false };
+    if (company_id) query.company_id = company_id;
+
+    const product = await Product.findOne(query).lean();
 
     if (!product) {
         throw ApiError.notFound("Product not found");
@@ -112,12 +115,18 @@ export const updateProduct = async (company_id, id, updates) => {
     // Change #2
     assertValidId(id);
 
+    const query = { _id: id, is_deleted: false };
+    if (company_id) query.company_id = company_id;
+
     // Change #1 â€” normalize SKU before duplicate check
     if (updates.sku) {
         updates.sku = updates.sku.toUpperCase();
 
+        const existing = await Product.findOne(query);
+        if (!existing) throw ApiError.notFound("Product not found");
+
         const collision = await Product.findOne({
-            company_id,
+            company_id: existing.company_id,
             sku: updates.sku,
             _id:        { $ne: id },
             is_deleted: false,
@@ -128,7 +137,7 @@ export const updateProduct = async (company_id, id, updates) => {
     }
 
     const product = await Product.findOneAndUpdate(
-        { _id: id, company_id, is_deleted: false },
+        query,
         updates,
         { new: true, runValidators: true }
     );
@@ -137,7 +146,7 @@ export const updateProduct = async (company_id, id, updates) => {
         throw ApiError.notFound("Product not found");
     }
 
-    logger.info({ product_id: product._id, company_id }, "Product updated");
+    logger.info({ product_id: product._id, company_id: product.company_id }, "Product updated");
 
     return product;
 };
@@ -149,27 +158,29 @@ export const deleteProduct = async (company_id, id) => {
     // Change #2
     assertValidId(id);
 
+    const query = { _id: id, is_deleted: false };
+    if (company_id) query.company_id = company_id;
+
+    // Find the product first to get its actual company_id
+    const existing = await Product.findOne(query);
+    if (!existing) throw ApiError.notFound("Product not found");
+
     // M9Vends-specific â€” block deletion if product is assigned to any machine
-    const inUse = await MachineCatalog.exists({ company_id, product_id: id });
+    const inUse = await MachineCatalog.exists({ company_id: existing.company_id, product_id: id });
     if (inUse) {
         throw ApiError.conflict(
             "Cannot delete: product is assigned to one or more machine catalogs. " +
-            "Remove it from all machines first."
+            "Please remove it from all machine configurations first."
         );
     }
 
     const product = await Product.findOneAndUpdate(
-        { _id: id, company_id, is_deleted: false },
+        query,
         { is_deleted: true, deleted_at: new Date() },
         { new: true }
     );
 
-    if (!product) {
-        throw ApiError.notFound("Product not found");
-    }
-
-    logger.info({ product_id: id, company_id }, "Product soft-deleted");
+    logger.info({ product_id: id, company_id: product.company_id }, "Product soft-deleted");
 
     return product;
 };
-

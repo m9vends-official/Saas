@@ -1,4 +1,4 @@
-﻿import User from "../models/User.js";
+import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import logger from "../utils/logger.js";
 import ApiError from "../utils/ApiError.js";
@@ -36,9 +36,10 @@ export const inviteUser = async ({ company_id, name, email, password, role }) =>
 }
 
 export const updateUserStatus = async (company_id, userId, is_active) => {
-
+    const query = company_id ? { _id: userId, company_id } : { _id: userId };
+    
     const user = await User.findOneAndUpdate(
-        {_id: userId, company_id},
+        query,
         {is_active},
         {new: true, runValidators: true}
     ).select("-password_hash");
@@ -49,5 +50,34 @@ export const updateUserStatus = async (company_id, userId, is_active) => {
 
     logger.info({user_id: userId, is_active},"User status updated");
 
+    return user;
+}
+
+export const updateUser = async (company_id, userId, updateData) => {
+    // Prevent updating password through this route
+    delete updateData.password_hash;
+    
+    const query = company_id ? { _id: userId, company_id } : { _id: userId };
+    
+    const user = await User.findOneAndUpdate(
+        query,
+        {$set: updateData},
+        {new: true, runValidators: true}
+    ).select("-password_hash");
+
+    if(!user){
+        throw ApiError.notFound("User not Found");
+    }
+
+    logger.info({user_id: userId, updateData},"User details updated");
+
+    return user;
+}
+
+export const deleteUser = async (company_id, userId) => {
+    const query = company_id ? { _id: userId, company_id } : { _id: userId };
+    const user = await User.findOneAndDelete(query);
+    if (!user) throw ApiError.notFound("User not Found");
+    logger.info({user_id: userId}, "User deleted");
     return user;
 }

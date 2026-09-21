@@ -1,4 +1,4 @@
-﻿import User from "../../../models/User.js";
+import User from "../../../models/User.js";
 import ApiError from "../../../utils/ApiError.js";
 import logger from "../../../utils/logger.js";
 import * as userService from "../../../services/userService.js";
@@ -80,6 +80,26 @@ export const updateUserStatus = async (req, res, next) => {
   try {
     const user = await userService.updateUserStatus(req.company_id, req.params.id, req.body.is_active)  
     res.json({success: true, data: user});
+  } catch (error) {
+    next(error);
+  }
+}
+
+//  PUT /api/admin/users/:id
+export const updateUser = async (req, res, next) => {
+  try {
+    const user = await userService.updateUser(req.company_id, req.params.id, req.body)
+    res.json({success: true, data: user});
+  } catch (error) {
+    next(error);
+  }
+}
+
+// DELETE /api/admin/users/:id
+export const deleteUser = async (req, res, next) => {
+  try {
+    await userService.deleteUser(req.company_id, req.params.id);
+    res.json({success: true, message: "User deleted"});
   } catch (error) {
     next(error);
   }

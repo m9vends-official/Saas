@@ -39,6 +39,16 @@ const companySchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    // Added: BYOK Razorpay Integration
+    razorpay_key_id: {
+      type: String,
+      default: null,
+    },
+    razorpay_key_secret: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

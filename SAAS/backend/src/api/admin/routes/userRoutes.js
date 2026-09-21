@@ -1,5 +1,5 @@
-﻿import { Router } from "express";
-import { getMe, listUsers, inviteUser, updateUserStatus } from "../controllers/userController.js";
+import { Router } from "express";
+import { getMe, listUsers, inviteUser, updateUserStatus, updateUser, deleteUser } from "../controllers/userController.js";
 import { authMiddleware }   from "../middlewares/authMiddleware.js";
 import { tenantMiddleware } from "../middlewares/tenantMiddleware.js";
 import { authorizeRoles }   from "../middlewares/rbacMiddleware.js";
@@ -47,5 +47,19 @@ router.patch(
   updateUserStatus
 );
 
-export default router;
+// PUT /api/admin/users/:id
+router.put(
+  "/:id",
+  authorizeRoles("SUPER_ADMIN"),
+  updateUser
+);
 
+
+// DELETE /api/admin/users/:id
+router.delete(
+  "/:id",
+  authorizeRoles("SUPER_ADMIN"),
+  deleteUser
+);
+
+export default router;

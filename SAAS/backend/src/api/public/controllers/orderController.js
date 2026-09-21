@@ -62,9 +62,20 @@ export const handleWebhook = async (req, res, next) => {
             throw ApiError.badRequest("Missing webhook signature");
         }
 
-        const isValid = verifyWebhookSignature(req.rawBody, signature);
+        const { company_id } = req.params;
+        let secret = process.env.RAZORPAY_KEY_SECRET;
+
+        if (company_id) {
+            const Company = (await import('../../../models/Company.js')).default || (await import('../../../models/Company.js'));
+            const company = await Company.findById(company_id);
+            if (company && company.razorpay_key_secret) {
+                secret = company.razorpay_key_secret;
+            }
+        }
+
+        const isValid = verifyWebhookSignature(req.rawBody, signature, secret);
         if (!isValid) {
-            logger.warn("Invalid Razorpay webhook signature — possible spoofing attempt");
+            logger.warn({ company_id }, "Invalid Razorpay webhook signature — possible spoofing attempt");
             throw ApiError.unauthorized("Invalid webhook signature");
         }
 

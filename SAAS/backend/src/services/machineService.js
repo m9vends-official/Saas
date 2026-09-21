@@ -1,4 +1,4 @@
-﻿import axios from "axios";
+import axios from "axios";
 import MachineAssignment from "../models/MachineAssignment.js";
 import User from "../models/User.js";
 import ApiError from "../utils/ApiError.js";
@@ -43,10 +43,10 @@ export const getMachines = async (user) => {
       const machine_ids = assignments.map((a) => a.machine_id);
       if (machine_ids.length === 0) return [];
 
-      // Fetch each assigned machine individually: GET /api/device/getDevice/:deviceVID
+      // Fetch each assigned machine individually: GET /api/device/device/:deviceVID
       const results = await Promise.allSettled(
         machine_ids.map((id) =>
-          iotClient.get(`/api/device/getDevice/${id}`).then((r) => r.data)
+          iotClient.get(`/api/device/device/${id}`).then((r) => r.data)
         )
       );
 
@@ -90,17 +90,13 @@ export const getMachines = async (user) => {
 // â”€â”€â”€ getMachine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // GET /api/admin/machines/:machine_id
 // Returns a single device's full detail including components[].
-// NOTE: The IoT backend's GET /api/device/getDevice/:id is broken â€” it expects
-// an ownerID, not a deviceID. Workaround: call getDevices/:ownerID and filter.
 export const getMachine = async (machine_id, user) => {
   try {
     const iotClient = getIotClient();
     await assertMachineAccess(machine_id, user);
 
-    // Fetch all machines for this owner, then find the specific one by _id
-    const response = await iotClient.get(`/api/device/getDevices/${user.user_id}`);
-    const machines = response.data.device || [];
-    const machine = machines.find((m) => m._id === machine_id);
+    const response = await iotClient.get(`/api/device/device/${machine_id}`);
+    const machine = response.data.device;
 
     if (!machine) {
       throw ApiError.notFound(`Machine ${machine_id} not found`);
