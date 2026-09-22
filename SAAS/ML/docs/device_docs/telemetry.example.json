@@ -1,0 +1,11 @@
+{
+    "Steering Motor Temperature": 28,
+    "Tank Levels": [
+        25,
+        50,
+        40,
+        10
+    ],
+    "Steering Motor": true,
+    "Current Sensor": 250
+}

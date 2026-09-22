@@ -1,0 +1,55 @@
+{
+  "name": "m9vends_iot_service",
+  "version": "1.0.0",
+  "description": "IoT Provisioning and Management Backend Service for M9Vends developed by Atharva Kaplay, Founder, Stelyx Systems",
+  "homepage": "https://github.com/Stelyx-Systems/M9Vends-IoT-Backend-Service#readme",
+  "bugs": {
+    "url": "https://github.com/Stelyx-Systems/M9Vends-IoT-Backend-Service/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Stelyx-Systems/M9Vends-IoT-Backend-Service.git"
+  },
+  "license": "UNLICENSED",
+  "author": "M9Vends",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "docs:src": "node scripts/generate-src-tree.cjs",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:verbose": "vitest run --reporter=verbose",
+    "dev": "nodemon",
+    "build": "tsc --build",
+    "start": "node dist/server.js"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mongoose": "^5.11.96",
+    "@types/node": "^25.9.2",
+    "@types/supertest": "^7.2.0",
+    "@vitest/coverage-v8": "^4.1.8",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2",
+    "tree-cli": "^0.6.7",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.3",
+    "mqtt": "^5.15.1"
+  }
+}

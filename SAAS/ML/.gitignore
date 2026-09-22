@@ -1,0 +1,79 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+.eslintcache
+
+# Runtime files
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+tmp/
+temp/
+
+# Package manager stores
+.pnpm-store/
+.npm/
+
+# Yarn
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+# Testing
+jest-results/
+playwright-report/
+test-results/
+
+# Local databases (if applicable)
+*.sqlite
+*.sqlite3
+
+# Docker (optional)
+docker-compose.override.yml
+
+# Misc
+*.tgz

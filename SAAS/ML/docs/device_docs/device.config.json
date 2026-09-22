@@ -1,0 +1,26 @@
+{
+    "model": "Pani_Puri_Vending_Machine_V1",
+    "serialNumber": "M9V-PPVM-V001",
+    "components": [
+        {
+            "name": "Steering Motor Temperature",
+            "type": "sensor",
+            "catagory": "temperature_sensor"
+        },
+        {
+            "name": "Current Sensor",
+            "type": "sensor",
+            "catagory": "current_sensor"
+        },
+        {
+            "name": "Steering Motor",
+            "type": "accutator",
+            "catagory": "switch"
+        },
+        {
+            "name": "Tank Levels",
+            "type": "sensor",
+            "catagory": "water_level_sensor"
+        }
+    ]
+}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>capture</title>
+</head>
+
+<body style="margin:0;background:#000;">
+    <script>
+        // ---- CONFIG ----
+        const ML_BACKEND_URL = "{{IMAGE_ML_API_URL}}"; 
+        const FRAME_INTERVAL_MS = 250;   
+        const JPEG_QUALITY = 0.6;        
+        const FRAME_WIDTH = 640;
+        const FRAME_HEIGHT = 480;
+        // ----------------
+
+        function getDeviceId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("deviceID") || params.get("device") || "unknown-device";
+        }
+
+        const DEVICE_ID = getDeviceId();
+
+        let sending = false; // simple lock so we never queue overlapping uploads
+
+        async function start() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: "user", width: FRAME_WIDTH, height: FRAME_HEIGHT },
+                    audio: false
+                });
+
+                const video = document.createElement("video");
+                video.srcObject = stream;
+                video.muted = true;
+                video.setAttribute("playsinline", ""); // avoid fullscreen takeover on some Android WebViews
+                await video.play();
+
+                const canvas = document.createElement("canvas");
+                canvas.width = FRAME_WIDTH;
+                canvas.height = FRAME_HEIGHT;
+                const ctx = canvas.getContext("2d");
+
+                setInterval(() => {
+                    if (sending) return; // skip this tick if the previous upload hasn't finished
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob((blob) => {
+                        if (!blob) return;
+                        sending = true;
+                        fetch(`${ML_BACKEND_URL}?deviceID=${DEVICE_ID}`, {
+                            method: "POST",
+                            headers: { "Content-Type": "image/jpeg" },
+                            body: blob
+                        })
+                            .catch((err) => console.error("ingest upload failed:", err))
+                            .finally(() => { sending = false; });
+                    }, "image/jpeg", JPEG_QUALITY);
+                }, FRAME_INTERVAL_MS);
+
+            } catch (err) {
+                // Surface failure reason visibly in case you need to eyeball a device screen while debugging
+                document.body.innerText = "capture error: " + err.message;
+                console.error("getUserMedia failed:", err);
+            }
+        }
+
+        start();
+    </script>
+</body>
+
+</html>
