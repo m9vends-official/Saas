@@ -172,12 +172,39 @@ Before starting, you need:
 | npm | Version 8 or higher |
 | MongoDB Atlas account | Free tier is fine for development |
 | Razorpay account | Test mode keys for development |
-| IoT backend running | `https://m9vends-iot-backend-service.onrender.com` or local instance |
+| IoT backend running | `https://m9vends-iot-backend-service.onrender.com` or local `http://localhost:3001` |
+| MQTT Broker accessible | `13.239.132.146:1883` — confirm it's reachable from your server |
 | Git | For version control |
+
+> ⚠️ **Render free tier cold-start:** The IoT backend sleeps after 15 min of inactivity. The first request after sleep may take 30–60 seconds. The kiosk `BootScreen` handles this with a retry loop.
 
 ---
 
-## 5. Step 1 — Set Up the SaaS Backend
+## 5. Step 1 — Verify IoT Backend is Reachable
+
+Before setting up anything else, confirm the IoT backend (and MQTT broker) are accessible.
+
+```bash
+# Test IoT backend REST API (will wake it up if sleeping)
+curl -X POST https://m9vends-iot-backend-service.onrender.com/api/device/wake-up \
+  -H "Content-Type: application/json" \
+  -d '{ "serialNumber": "SN-TEST-001", "model": "TestModel", "status": "online" }'
+# Expected: { "deviceVID": "...", "isProvisioned": false, ... }
+```
+
+> If you get a timeout (first cold-start on Render), wait 30s and retry.
+
+```bash
+# Test MQTT broker reachability (requires mosquitto_pub or similar tool)
+# If you don't have it, skip this — the SaaS backend will log MQTT status on startup
+ping 13.239.132.146
+```
+
+> 📄 Full IoT backend API reference: [00_IOT_BACKEND_DOCUMENTATION.md](./00_IOT_BACKEND_DOCUMENTATION.md)
+
+---
+
+## 6. Step 2 — Set Up the SaaS Backend
 
 ### 5.1 Install dependencies
 
@@ -894,12 +921,14 @@ curl "http://localhost:5000/api/admin/orders?limit=10&page=1" \
 | Admin Panel (Next.js) | 3000 | http://localhost:3000 |
 | Kiosk (Vite) | 5174 | http://localhost:5174 |
 | IoT Backend | 3001 | http://localhost:3001 (or Render URL) |
-| MQTT Broker (TCP) | 1883 | mqtt://13.239.132.146:1883 |
-| MQTT Broker (WebSocket) | 8083 | ws://13.239.132.146:8083 |
+| MQTT Broker (TCP) | 1883 | mqtt://13.239.132.146:1883 — admin + device credentials |
+| MQTT Broker (WebSocket) | 8083 | ws://13.239.132.146:8083 — browser JWT token |
+| MQTT Broker (WS TLS) | 8084 | wss://13.239.132.146:8084 — production browser |
 
 ---
 
 *For detailed documentation on each component, see:*
-- 📄 [Backend Documentation](./01_BACKEND_DOCUMENTATION.md)
+- 📄 [IoT Backend Documentation](./00_IOT_BACKEND_DOCUMENTATION.md)
+- 📄 [SaaS Backend Documentation](./01_BACKEND_DOCUMENTATION.md)
 - 📄 [Kiosk Documentation](./02_KIOSK_DOCUMENTATION.md)
 - 📄 [Admin Panel Documentation](./03_ADMIN_PANEL_DOCUMENTATION.md)

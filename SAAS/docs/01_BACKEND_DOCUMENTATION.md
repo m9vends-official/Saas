@@ -28,22 +28,37 @@ M9Vends is a multi-tenant SaaS backend for smart vending machine management. It 
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                          M9Vends SaaS Backend :5000                  │
+│                       M9Vends Platform Overview                      │
 │                                                                      │
-│  /api/public/*   ← Kiosk (no auth, machine_id only)                 │
-│  /api/admin/*    ← Admin Panel (JWT + RBAC)                          │
-│                                                                      │
-│  Socket.IO  ← Admin Panel real-time events                           │
-│  MQTT       ← IoT Machine telemetry & status                         │
+│  ┌──────────────┐   REST (public)  ┌───────────────────────────┐    │
+│  │  User Kiosk  │ ◄──────────────► │   SaaS Backend  :5000     │    │
+│  │  React/Vite  │                  │   /api/public/*            │    │
+│  └──────────────┘                  │   /api/admin/*             │    │
+│                                    │                             │    │
+│  ┌──────────────┐  REST + Socket.IO│   Socket.IO server         │    │
+│  │ Admin Panel  │ ◄──────────────► │   MQTT client (server-side)│    │
+│  │  Next.js 14  │                  └───────────┬───────────────┘    │
+│  └──────────────┘                              │                     │
+│                                          IoT REST proxy               │
+│                                                │                     │
+│                               ┌────────────────▼────────────────┐   │
+│                               │   IoT Backend Service  :3001    │   │
+│                               │   Device registry + provisioning│   │
+│                               │   MQTT token issuance           │   │
+│                               └────────────────┬────────────────┘   │
+│                                                │                     │
+│                                         MQTT :1883                   │
+│                                                │                     │
+│                               ┌────────────────▼────────────────┐   │
+│                               │   MQTT Broker 13.239.132.146    │   │
+│                               │   TCP :1883 | WS :8083          │   │
+│                               └────────────────┬────────────────┘   │
+│                                                │                     │
+│                               ┌────────────────▼────────────────┐   │
+│                               │   Physical Vending Machines      │   │
+│                               │   (Arduino + IoT Unit)          │   │
+│                               └─────────────────────────────────┘   │
 └──────────────────────────────────────────────────────────────────────┘
-         │
-         │ IoT REST API proxy
-         ▼
-IoT Backend Service (m9vends-iot-backend-service.onrender.com)
-         │
-         │ MQTT broker 13.239.132.146:1883
-         ▼
-Physical Vending Machines
 ```
 
 ### Key Design Decisions
@@ -55,6 +70,9 @@ Physical Vending Machines
 | Multi-tenant isolation | Every data model has `company_id`. All admin queries MUST filter by it via `tenantMiddleware`. |
 | Cash payment flow | Creates order, admin confirms manually via `POST /api/admin/orders/:id/confirm-cash`. |
 | Token strategy | Access token (1 day, in memory). Refresh token (7 days, httpOnly cookie). |
+| IoT Backend is separate | Device registration, provisioning, and MQTT brokering live in the IoT service. SaaS backend proxies device calls and bridges MQTT → Socket.IO. |
+
+> 📄 **See also:** [00_IOT_BACKEND_DOCUMENTATION.md](./00_IOT_BACKEND_DOCUMENTATION.md) for the full IoT backend reference.
 
 ---
 
