@@ -3,7 +3,7 @@
 > **Service:** M9Vends IoT Backend Service
 > **Deployment:** `https://m9vends-iot-backend-service.onrender.com` (production)
 > **Local Dev:** `http://localhost:3001`
-> **MQTT Broker:** `13.239.132.146` (AWS Sydney)
+> **MQTT Broker:** `<YOUR_MQTT_BROKER_HOST>` (AWS Sydney)
 > **Last Updated:** October 2026
 
 ---
@@ -51,7 +51,7 @@ Physical Machine (Arduino + IoT unit)
        │
        │ MQTT over TCP :1883 (device credentials)
        ▼
- MQTT Broker (13.239.132.146)
+ MQTT Broker (<YOUR_MQTT_BROKER_HOST>)
        │
        ├──────────────────────────────────────────────────────────┐
        │ device/+/telemetry, device/+/status                      │
@@ -95,9 +95,9 @@ IoT Backend Service
 |---|---|---|
 | **Production** | `https://m9vends-iot-backend-service.onrender.com` | Render free tier — may sleep after 15 min inactivity |
 | **Local Dev** | `http://localhost:3001` | Run alongside SaaS backend |
-| **MQTT TCP** | `mqtt://13.239.132.146:1883` | For devices and SaaS backend (admin credentials) |
-| **MQTT WebSocket** | `ws://13.239.132.146:8083` | For browser clients (JWT token from connect API) |
-| **MQTT WebSocket TLS** | `wss://13.239.132.146:8084` | Production browser clients |
+| **MQTT TCP** | `mqtt://<YOUR_MQTT_BROKER_HOST>:1883` | For devices and SaaS backend (admin credentials) |
+| **MQTT WebSocket** | `ws://<YOUR_MQTT_BROKER_HOST>:8083` | For browser clients (JWT token from connect API) |
+| **MQTT WebSocket TLS** | `wss://<YOUR_MQTT_BROKER_HOST>:8084` | Production browser clients |
 
 > ⚠️ **Render free tier cold-start:** If the IoT service hasn't received a request in 15 minutes, the first request will take 30–60 seconds to wake up. The kiosk `BootScreen` should handle this with a retry loop.
 
@@ -170,10 +170,10 @@ Content-Type: application/json
   "message": "Created New Device",
   "deviceVID": "60d5ec49f3e4e9001f3b2e99",
   "mqtt": {
-    "url": "13.239.132.146",
+    "url": "<YOUR_MQTT_BROKER_HOST>",
     "port": 1883,
-    "username": "Device",
-    "password": "Device@123"
+    "username": "<DEVICE_MQTT_USERNAME>",
+    "password": "<DEVICE_MQTT_PASSWORD>"
   },
   "topics": {
     "pub": ["telemetry", "status"],
@@ -194,10 +194,10 @@ Content-Type: application/json
   "message": "Wakeup Existing Device",
   "deviceVID": "60d5ec49f3e4e9001f3b2e99",
   "mqtt": {
-    "url": "13.239.132.146",
+    "url": "<YOUR_MQTT_BROKER_HOST>",
     "port": 1883,
-    "username": "Device",
-    "password": "Device@123"
+    "username": "<DEVICE_MQTT_USERNAME>",
+    "password": "<DEVICE_MQTT_PASSWORD>"
   },
   "topics": {
     "pub": ["telemetry", "status"],
@@ -315,7 +315,7 @@ GET /api/device/connect/60d5ec49f3e4e9001f3b2e99
 ```js
 import mqtt from 'mqtt'
 
-const client = mqtt.connect('ws://13.239.132.146:8083', {
+const client = mqtt.connect('ws://<YOUR_MQTT_BROKER_HOST>:8083', {
   username: 'FrontendClient',   // Fixed string — all browser clients use this
   password: token,              // JWT from this API
   clientId: `kiosk_${Math.random().toString(16).substr(2, 8)}`,
@@ -445,14 +445,14 @@ Content-Type: application/json
 
 ### 5.1 Broker Details & Access Tiers
 
-The MQTT broker runs on an AWS EC2 instance in Sydney (`13.239.132.146`).
+The MQTT broker runs on an AWS EC2 instance in Sydney (`<YOUR_MQTT_BROKER_HOST>`).
 
 **Three credential tiers exist:**
 
 | Tier | Username | Password | Used By | Port |
 |---|---|---|---|---|
-| **Device** | `Device` | `Device@123` | Physical vending machines (Arduino/IoT unit) | `1883` (TCP) |
-| **Admin** | `Admin` | `Admin@123` | SaaS Backend `mqttService.js` (server-side only) | `1883` (TCP) |
+| **Device** | `<DEVICE_MQTT_USERNAME>` | `<DEVICE_MQTT_PASSWORD>` | Physical vending machines (Arduino/IoT unit) | `1883` (TCP) |
+| **Admin** | `<ADMIN_MQTT_USERNAME>` | `<ADMIN_MQTT_PASSWORD>` | SaaS Backend `mqttService.js` (server-side only) | `1883` (TCP) |
 | **Browser** | `FrontendClient` | JWT token (from `/api/device/connect/:id`) | Kiosk React app, Admin Panel browser | `8083` (WS), `8084` (WSS) |
 
 > ⚠️ **Admin and Device credentials NEVER go into browser code.** The SaaS backend uses admin credentials server-side. Browsers always use the short-lived JWT token from the Connect API.
@@ -668,8 +668,8 @@ The SaaS backend connects to the MQTT broker using **admin credentials** and sub
 ```js
 // mqttService.js
 mqtt.connect(`mqtt://${MQTT_BROKER_HOST}:${MQTT_BROKER_TCP_PORT}`, {
-  username: process.env.MQTT_ADMIN_USERNAME,  // "Admin"
-  password: process.env.MQTT_ADMIN_PASSWORD,  // "Admin@123"
+  username: process.env.MQTT_ADMIN_USERNAME,
+  password: process.env.MQTT_ADMIN_PASSWORD,
 })
 
 client.subscribe('device/+/telemetry')
@@ -685,10 +685,10 @@ When a telemetry message arrives:
 ### 8.3 SaaS Backend `.env` Required for IoT Integration
 
 ```env
-MQTT_BROKER_HOST=13.239.132.146
+MQTT_BROKER_HOST=your-mqtt-broker-host
 MQTT_BROKER_TCP_PORT=1883
-MQTT_ADMIN_USERNAME=Admin
-MQTT_ADMIN_PASSWORD=Admin@123
+MQTT_ADMIN_USERNAME=your_mqtt_admin_username
+MQTT_ADMIN_PASSWORD=your_mqtt_admin_password
 IOT_API_BASE_URL=https://m9vends-iot-backend-service.onrender.com
 ```
 
@@ -714,7 +714,7 @@ const token = await fetch(`${IOT_API_URL}/api/device/connect/${deviceVID}`)
                .then(r => r.json())
                .then(d => d.mqttCredentials.token)
 
-const client = mqtt.connect('ws://13.239.132.146:8083', {
+const client = mqtt.connect(import.meta.env.VITE_MQTT_BROKER_URL || 'ws://<YOUR_MQTT_BROKER_HOST>:8083', {
   username: 'FrontendClient',   // Fixed for all browser clients
   password: token,
 })
@@ -726,7 +726,7 @@ client.subscribe(`device/${deviceVID}/telemetry`)
 **Kiosk `.env` variables for IoT:**
 ```env
 VITE_IOT_API_URL=https://m9vends-iot-backend-service.onrender.com
-VITE_MQTT_BROKER_URL=ws://13.239.132.146:8083
+VITE_MQTT_BROKER_URL=ws://<YOUR_MQTT_BROKER_HOST>:8083
 VITE_UPI_TIMEOUT_MS=180000    # 3 min
 VITE_CASH_TIMEOUT_MS=600000   # 10 min
 VITE_POLL_INTERVAL_MS=3000    # 3s polling
@@ -809,7 +809,7 @@ GET   /api/device/device/:deviceVID     ← Device info (proxied by SaaS)
 GET   /api/device/user/:userID          ← User's devices (proxied by SaaS)
 POST  /api/device/:deviceVID/commands   ← Send command (proxied by SaaS)
 
-MQTT Broker (13.239.132.146)
+MQTT Broker (<YOUR_MQTT_BROKER_HOST>)
 ────────────────────────────────────────────────────────────
 TCP  :1883  — Device & SaaS backend (admin credentials)
 WS   :8083  — Browser clients (JWT token)
@@ -821,7 +821,7 @@ Topics:
   device/<deviceVID>/commands    ← Admin/SaaS publishes → machine subscribes
 
 Credentials:
-  Devices:        username=Device,         password=Device@123
-  SaaS backend:   username=Admin,          password=Admin@123
-  Browser:        username=FrontendClient, password=<JWT from connect API>
+  Devices:        username=<DEVICE_MQTT_USERNAME>, password=<DEVICE_MQTT_PASSWORD>
+  SaaS backend:   username=<ADMIN_MQTT_USERNAME>,  password=<ADMIN_MQTT_PASSWORD>
+  Browser:        username=FrontendClient,        password=<JWT from connect API>
 ```

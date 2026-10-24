@@ -144,7 +144,7 @@ Physical Machine (Arduino)
    ↓ MQTT publish device/<deviceVID>/telemetry (every 1 second)
    ↓ MQTT publish device/<deviceVID>/status ("online"/"offline")
 
-MQTT Broker (13.239.132.146:1883)
+MQTT Broker (<MQTT_BROKER_HOST>:1883)
    ↓
 
 SaaS Backend mqttService.js
@@ -173,7 +173,7 @@ Before starting, you need:
 | MongoDB Atlas account | Free tier is fine for development |
 | Razorpay account | Test mode keys for development |
 | IoT backend running | `https://m9vends-iot-backend-service.onrender.com` or local `http://localhost:3001` |
-| MQTT Broker accessible | `13.239.132.146:1883` — confirm it's reachable from your server |
+| MQTT Broker accessible | `<MQTT_BROKER_HOST>:1883` — confirm it's reachable from your server |
 | Git | For version control |
 
 > ⚠️ **Render free tier cold-start:** The IoT backend sleeps after 15 min of inactivity. The first request after sleep may take 30–60 seconds. The kiosk `BootScreen` handles this with a retry loop.
@@ -197,7 +197,7 @@ curl -X POST https://m9vends-iot-backend-service.onrender.com/api/device/wake-up
 ```bash
 # Test MQTT broker reachability (requires mosquitto_pub or similar tool)
 # If you don't have it, skip this — the SaaS backend will log MQTT status on startup
-ping 13.239.132.146
+ping <MQTT_BROKER_HOST>
 ```
 
 > 📄 Full IoT backend API reference: [00_IOT_BACKEND_DOCUMENTATION.md](./00_IOT_BACKEND_DOCUMENTATION.md)
@@ -221,7 +221,7 @@ Create `backend/.env`:
 PORT=5000
 NODE_ENV=development
 
-MONGO_URI=mongodb+srv://<user>:<password>@cluster0.u8nxqy3.mongodb.net/<dbname>
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster-url>/<dbname>
 
 JWT_ACCESS_SECRET=your_super_secret_access_key_min_10_chars
 JWT_REFRESH_SECRET=your_super_secret_refresh_key_min_10_chars
@@ -234,10 +234,10 @@ KIOSK_URL=http://localhost:5174
 RAZORPAY_KEY_ID=rzp_test_XXXXXXXXXXXXXXXX
 RAZORPAY_KEY_SECRET=XXXXXXXXXXXXXXXXXXXXXXXX
 
-MQTT_BROKER_HOST=13.239.132.146
+MQTT_BROKER_HOST=your-mqtt-broker-host
 MQTT_BROKER_TCP_PORT=1883
-MQTT_ADMIN_USERNAME=
-MQTT_ADMIN_PASSWORD=
+MQTT_ADMIN_USERNAME=your_mqtt_admin_username
+MQTT_ADMIN_PASSWORD=your_mqtt_admin_password
 IOT_API_BASE_URL=https://m9vends-iot-backend-service.onrender.com
 ```
 
@@ -344,7 +344,7 @@ Create `kiosk-screen/.env`:
 VITE_SERIAL_NUMBER=SN-M9V-0001        # Unique per physical machine
 VITE_SAAS_API_URL=http://localhost:5000
 VITE_IOT_API_URL=https://m9vends-iot-backend-service.onrender.com
-VITE_MQTT_BROKER_URL=ws://13.239.132.146:8083
+VITE_MQTT_BROKER_URL=ws://<MQTT_BROKER_HOST>:8083
 ```
 
 > ⚠️ **VITE_SERIAL_NUMBER must be unique per physical device.**
@@ -921,9 +921,9 @@ curl "http://localhost:5000/api/admin/orders?limit=10&page=1" \
 | Admin Panel (Next.js) | 3000 | http://localhost:3000 |
 | Kiosk (Vite) | 5174 | http://localhost:5174 |
 | IoT Backend | 3001 | http://localhost:3001 (or Render URL) |
-| MQTT Broker (TCP) | 1883 | mqtt://13.239.132.146:1883 — admin + device credentials |
-| MQTT Broker (WebSocket) | 8083 | ws://13.239.132.146:8083 — browser JWT token |
-| MQTT Broker (WS TLS) | 8084 | wss://13.239.132.146:8084 — production browser |
+| MQTT Broker (TCP) | 1883 | mqtt://<MQTT_BROKER_HOST>:1883 — admin + device credentials |
+| MQTT Broker (WebSocket) | 8083 | ws://<MQTT_BROKER_HOST>:8083 — browser JWT token |
+| MQTT Broker (WS TLS) | 8084 | wss://<MQTT_BROKER_HOST>:8084 — production browser |
 
 ---
 
@@ -932,3 +932,4 @@ curl "http://localhost:5000/api/admin/orders?limit=10&page=1" \
 - 📄 [SaaS Backend Documentation](./01_BACKEND_DOCUMENTATION.md)
 - 📄 [Kiosk Documentation](./02_KIOSK_DOCUMENTATION.md)
 - 📄 [Admin Panel Documentation](./03_ADMIN_PANEL_DOCUMENTATION.md)
+- 📄 [Machine Setup & Onboarding Guide](./05_MACHINE_SETUP_DOCUMENTATION.md)

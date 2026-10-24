@@ -50,7 +50,7 @@ M9Vends is a multi-tenant SaaS backend for smart vending machine management. It 
 │                                         MQTT :1883                   │
 │                                                │                     │
 │                               ┌────────────────▼────────────────┐   │
-│                               │   MQTT Broker 13.239.132.146    │   │
+│                               │   MQTT Broker <BROKER_HOST>     │   │
 │                               │   TCP :1883 | WS :8083          │   │
 │                               └────────────────┬────────────────┘   │
 │                                                │                     │
@@ -144,10 +144,10 @@ RAZORPAY_KEY_ID=rzp_test_...        # Razorpay Key ID
 RAZORPAY_KEY_SECRET=...             # Razorpay Key Secret
 
 # ── IoT / MQTT ────────────────────────────────────
-MQTT_BROKER_HOST=13.239.132.146
+MQTT_BROKER_HOST=your-mqtt-broker-host
 MQTT_BROKER_TCP_PORT=1883
-MQTT_ADMIN_USERNAME=Admin
-MQTT_ADMIN_PASSWORD=Admin@123
+MQTT_ADMIN_USERNAME=your_mqtt_admin_username
+MQTT_ADMIN_PASSWORD=your_mqtt_admin_password
 IOT_API_BASE_URL=https://m9vends-iot-backend-service.onrender.com
 ```
 

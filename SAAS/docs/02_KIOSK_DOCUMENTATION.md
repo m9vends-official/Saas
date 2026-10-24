@@ -144,7 +144,7 @@ VITE_SAAS_API_URL=http://localhost:5000        # SaaS backend
 VITE_IOT_API_URL=http://localhost:3001         # IoT backend
 
 # ── MQTT (Phase 2 — not yet wired up) ─────────────────
-VITE_MQTT_BROKER_URL=ws://13.239.132.146:8083  # WebSocket MQTT URL
+VITE_MQTT_BROKER_URL=ws://<YOUR_MQTT_BROKER_HOST>:8083  # WebSocket MQTT URL
 ```
 
 > ⚠️ **Every physical kiosk machine needs its own unique `VITE_SERIAL_NUMBER`.** Never copy `.env` files across machines.

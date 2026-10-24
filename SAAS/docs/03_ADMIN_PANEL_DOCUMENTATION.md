@@ -64,7 +64,7 @@ The M9Vends Admin Panel is a **Next.js 14 web application** used by operators to
 Physical Vending Machine
     │ MQTT (device credentials)
     ▼
-IoT MQTT Broker  13.239.132.146:1883
+IoT MQTT Broker  <MQTT_BROKER_HOST>:1883
     │
     │  device/<deviceVID>/telemetry → JSON or alert string (1 Hz)
     │  device/<deviceVID>/status    → "online" or "offline"
